@@ -5,9 +5,9 @@ namespace BlobShadows
     [ExecuteAlways]
     public class BlobShadowCaster : MonoBehaviour
     {
-        [SerializeField] [Range(0.001f, 20f)] private float _power = 2f;
+        [SerializeField] private SdfType _type = SdfType.Circle;
 
-        public float Power => _power;
+        public SdfType Type => _type;
 
         private void Awake()
         {
@@ -17,6 +17,11 @@ namespace BlobShadows
         private void OnDestroy()
         {
             BlobShadows.ShadowCasters.Remove(this);
+        }
+
+        public enum SdfType
+        {
+            Circle, Box,
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Unity.Mathematics;
+﻿using System;
+using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -11,6 +13,8 @@ namespace BlobShadows
         private static readonly int ShadowMapParamsId = Shader.PropertyToID("_ShadowMapBlobParams");
 
         private readonly Plane[] _cameraFrustumPlanes = new Plane[6];
+        private readonly Dictionary<BlobShadowCaster.SdfType, List<(Vector2 pos, Vector2 halfSize)>> _shadowCastersByType =
+            new Dictionary<BlobShadowCaster.SdfType, List<(Vector2 pos, Vector2 halfSize)>>();
         private readonly Vector3[] _corners = new Vector3[4];
         private RenderTexture _rt;
         private Bounds _shadowFrustumAABB;
@@ -38,7 +42,6 @@ namespace BlobShadows
             Graphics.SetRenderTarget(_rt);
 
             GL.Clear(false, true, Color.black);
-            GL.Begin(GL.QUADS);
             GL.PushMatrix();
 
             var shadowFrustumCenter = _shadowFrustumAABB.center;
@@ -54,14 +57,14 @@ namespace BlobShadows
                 )
             );
 
-            material.SetPass(0);
-
 
             var extraShadowScaling = Settings.ExtraShadowScaling;
 
-            foreach (var planarShadowCaster in BlobShadows.ShadowCasters)
+            ClearShadowCasters();
+
+            foreach (var shadowCaster in BlobShadows.ShadowCasters)
             {
-                var t = planarShadowCaster.transform;
+                var t = shadowCaster.transform;
 
                 var position = t.position;
                 float x = position.x, y = position.z;
@@ -75,24 +78,66 @@ namespace BlobShadows
                 );
                 if (!GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, shadowBounds)) continue;
 
-                GL.Color(new Color(planarShadowCaster.Power, 0f, 0f));
-                GL.TexCoord2(0f, 0f);
-                GL.Vertex3(x - halfSizeX, y - halfSizeY, 0);
-                GL.TexCoord2(0f, 1f);
-                GL.Vertex3(x - halfSizeX, y + halfSizeY, 0);
-                GL.TexCoord2(1f, 1f);
-                GL.Vertex3(x + halfSizeX, y + halfSizeY, 0);
-                GL.TexCoord2(1f, 0f);
-                GL.Vertex3(x + halfSizeX, y - halfSizeY, 0);
+                if (!_shadowCastersByType.TryGetValue(shadowCaster.Type, out var list))
+                    _shadowCastersByType[shadowCaster.Type] = list = new List<(Vector2 pos, Vector2 halfSize)>();
+                
+                list.Add((new Vector2(x, y), new Vector2(halfSizeX, halfSizeY)));
+                    
+
+                
             }
 
-            GL.End();
+            foreach (var kvp in _shadowCastersByType)
+            {
+                var sdfType = kvp.Key;
+                var shadowCasters = kvp.Value;
+                if (shadowCasters.Count == 0) continue;
+
+                var keyword = sdfType switch
+                {
+                    BlobShadowCaster.SdfType.Circle => "SDF_CIRCLE",
+                    BlobShadowCaster.SdfType.Box => "SDF_BOX",
+                    _ => throw new ArgumentOutOfRangeException(),
+                };
+                material.EnableKeyword(keyword);
+                material.SetPass(0);
+                GL.Begin(GL.QUADS);
+
+                foreach (var (pos, casterHalfSize) in shadowCasters)
+                {
+                    float x = pos.x, y = pos.y;
+                    float halfSizeX = casterHalfSize.x, halfSizeY = casterHalfSize.y;
+                    GL.TexCoord2(0f, 0f);
+                    GL.Vertex3(x - halfSizeX, y - halfSizeY, 0);
+                    GL.TexCoord2(0f, 1f);
+                    GL.Vertex3(x - halfSizeX, y + halfSizeY, 0);
+                    GL.TexCoord2(1f, 1f);
+                    GL.Vertex3(x + halfSizeX, y + halfSizeY, 0);
+                    GL.TexCoord2(1f, 0f);
+                    GL.Vertex3(x + halfSizeX, y - halfSizeY, 0);
+                }
+
+                GL.End();
+                material.DisableKeyword(keyword);
+            }
+            
+            ClearShadowCasters();
+
+            
             GL.PopMatrix();
 
             Graphics.SetRenderTarget(null);
 
             Shader.SetGlobalTexture(ShadowMapId, _rt);
             Shader.SetGlobalVector(ShadowMapParamsId, new Vector4(size.x, size.y, offsetX, offsetY));
+        }
+
+        private void ClearShadowCasters()
+        {
+            foreach (var list in _shadowCastersByType.Values)
+            {
+                list.Clear();
+            }
         }
 
         private void RecalculateBounds(Camera camera)

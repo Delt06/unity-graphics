@@ -33,13 +33,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Fog: 1
-    - _Ramp0: 0.314
-    - _RampSmoothness: 0.368
+    - _Ramp0: 0.033
+    - _RampSmoothness: 0.358
     - _ReceiveShadows: 1
     - _VertexColor: 0
     - _VertexLit: 0
     m_Colors:
     - _BaseColor: {r: 0.20751718, g: 0.5471698, b: 0.19873619, a: 1}
     - _ShadowColor: {r: 0, g: 0, b: 0, a: 0.7529412}
-    - _ShadowTint: {r: 0, g: 0, b: 0, a: 0.6862745}
+    - _ShadowTint: {r: 0, g: 0, b: 0, a: 0.4745098}
   m_BuildTextureStacks: []
