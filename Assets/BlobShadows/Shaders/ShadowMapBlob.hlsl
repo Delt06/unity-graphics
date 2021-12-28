@@ -6,12 +6,12 @@
 TEXTURE2D(_ShadowMapBlob);
 SAMPLER(sampler_ShadowMapBlob);
 
-float4 _ShadowMapPlanarParams;
+float4 _ShadowMapBlobParams;
 
 inline half sample_blob_shadow_map(float3 position_ws)
 {
-    const half2 size = _ShadowMapPlanarParams.xy;
-    const half2 offset = _ShadowMapPlanarParams.zw;
+    const half2 size = _ShadowMapBlobParams.xy;
+    const half2 offset = _ShadowMapBlobParams.zw;
     const half2 uv = (position_ws.xz - offset) / size + 0.5;
     const half2 cancel_factors = step(0.5, abs(uv - 0.5));
     const half shadow_map_sample = 1 - SAMPLE_TEXTURE2D_LOD(_ShadowMapBlob, sampler_ShadowMapBlob, uv, 0).r;
