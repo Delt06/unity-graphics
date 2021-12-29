@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -26,6 +28,8 @@ namespace BlobShadows
             if (Settings == null) return;
             var material = Settings.Material;
             if (material == null) return;
+            
+            Profiler.BeginSample(nameof(BlobShadowsRendererPass));
 
             RecalculateBounds(renderingData.cameraData.camera);
             TryDispose();
@@ -61,6 +65,8 @@ namespace BlobShadows
             var extraShadowScaling = Settings.ExtraShadowScaling;
 
             ClearShadowCasters();
+            
+            Profiler.BeginSample("Populate map");
 
             foreach (var shadowCaster in BlobShadows.ShadowCasters)
             {
@@ -82,10 +88,11 @@ namespace BlobShadows
                     _shadowCastersByType[shadowCaster.Type] = list = new List<(Vector2 pos, Vector2 halfSize)>();
                 
                 list.Add((new Vector2(x, y), new Vector2(halfSizeX, halfSizeY)));
-                    
-
-                
             }
+            
+            Profiler.EndSample();
+            
+            Profiler.BeginSample("Draw");
 
             foreach (var kvp in _shadowCastersByType)
             {
@@ -121,6 +128,8 @@ namespace BlobShadows
                 material.DisableKeyword(keyword);
             }
             
+            Profiler.EndSample();
+            
             ClearShadowCasters();
 
             
@@ -130,6 +139,8 @@ namespace BlobShadows
 
             Shader.SetGlobalTexture(ShadowMapId, _rt);
             Shader.SetGlobalVector(ShadowMapParamsId, new Vector4(size.x, size.y, offsetX, offsetY));
+            
+            Profiler.EndSample();
         }
 
         private void ClearShadowCasters()
@@ -160,14 +171,36 @@ namespace BlobShadows
             GeometryUtility.CalculateFrustumPlanes(camera, _cameraFrustumPlanes);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AddToMinMax(ref Vector3 min, ref Vector3 max, Transform camTransform, Vector3[] corners)
         {
-            foreach (var corner in corners)
+            for (int index = 0, cornersLength = corners.Length; index < cornersLength; index++)
             {
+                var corner = corners[index];
                 var worldCorner = camTransform.TransformPoint(corner);
-                min = math.min(min, worldCorner);
-                max = math.max(max, worldCorner);
+                min = Min(min, worldCorner);
+                max = Max(max, worldCorner);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector3 Min(Vector3 v1, Vector3 v2)
+        {
+            return new Vector3(
+                math.min(v1.x, v2.x),
+                math.min(v1.y, v2.y),
+                math.min(v1.z, v2.z)
+            );
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector3 Max(Vector3 v1, Vector3 v2)
+        {
+            return new Vector3(
+                math.max(v1.x, v2.x),
+                math.max(v1.y, v2.y),
+                math.max(v1.z, v2.z)
+            );
         }
 
         private void TryDispose()
