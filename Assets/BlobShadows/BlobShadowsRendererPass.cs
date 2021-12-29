@@ -139,9 +139,14 @@ namespace BlobShadows
                 if (!_shadowCastersByType.TryGetValue(shadowCaster.Type, out var list))
                     _shadowCastersByType[shadowCaster.Type] = list = new List<Matrix4x4>();
 
+                var rotationEuler = t.eulerAngles;
+                rotationEuler.z = -rotationEuler.y;
+                rotationEuler.x = 0f;
+                rotationEuler.y = 0f;
+
                 var matrix = Matrix4x4.TRS(
                     new Vector3(x, y),
-                    Quaternion.identity,
+                    Quaternion.Euler(rotationEuler),
                     new Vector3(halfSizeX, halfSizeY, 1f)
                 );
 
