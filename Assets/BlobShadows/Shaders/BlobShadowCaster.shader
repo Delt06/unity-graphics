@@ -10,8 +10,14 @@ Shader "Hidden/Blob Shadows/Caster"
         ZTest Always
         ZWrite Off
         ColorMask R
+        
+        // "Meta-balls" blending
         Blend SrcColor One
         BlendOp Add
+        
+        // Voronoi-like blending
+//        Blend One One
+//        BlendOp Max
 
         Pass
         {
