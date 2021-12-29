@@ -20,6 +20,7 @@ MonoBehaviour:
     ShadowFrustumPadding: 1
     ShadowThreshold: -0.05
     ShadowSmoothness: 0.876
+    BlendingMode: 0
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0

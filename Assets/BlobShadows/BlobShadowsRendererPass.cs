@@ -23,9 +23,11 @@ namespace BlobShadows
         private readonly Vector3[] _corners = new Vector3[4];
         private readonly Matrix4x4[] _matrices = new Matrix4x4[MaxInstances];
         private readonly Mesh _quadMesh;
-        private readonly Dictionary<BlobShadowCaster.SdfType, List<Matrix4x4>> _shadowCastersByType =
-            new Dictionary<BlobShadowCaster.SdfType, List<Matrix4x4>>();
-        private Bounds _shadowFrustumAABB;
+        private readonly List<Matrix4x4>[] _shadowCastersByType;
+        private int _rtHeight;
+        private int _rtWidth;
+        private Bounds _shadowFrustumAabb;
+        private Vector2 _shadowFrustumAabbSize;
 
         public BlobShadowsRendererPass()
         {
@@ -56,6 +58,13 @@ namespace BlobShadows
                     0, 2, 1,
                 },
             };
+
+            _shadowCastersByType = new List<Matrix4x4>[BlobShadowCaster.SdfTypes.All.Count];
+
+            for (var i = 0; i < _shadowCastersByType.Length; i++)
+            {
+                _shadowCastersByType[i] = new List<Matrix4x4>();
+            }
         }
 
         public BlobShadowsRendererFeature.Settings Settings { get; set; }
@@ -64,21 +73,14 @@ namespace BlobShadows
         {
             base.OnCameraSetup(cmd, ref renderingData);
 
-            var (_, rtWidth, rtHeight) = GetRtParams();
-            rtWidth = Mathf.Max(rtWidth, 1);
-            rtHeight = Mathf.Max(rtHeight, 1);
+            RecalculateBounds(renderingData.cameraData.camera);
+            _shadowFrustumAabbSize = new Vector2(_shadowFrustumAabb.size.x, _shadowFrustumAabb.size.z);
+            _rtWidth = Mathf.CeilToInt(_shadowFrustumAabbSize.x * Settings.ResolutionPerUnit);
+            _rtHeight = Mathf.CeilToInt(_shadowFrustumAabbSize.y * Settings.ResolutionPerUnit);
 
-            const RenderTextureFormat format = RenderTextureFormat.RGB565; //RenderTextureFormat.R8;
-            var desc = new RenderTextureDescriptor(rtWidth, rtHeight, format, 0, 0);
+            const RenderTextureFormat format = RenderTextureFormat.R8;
+            var desc = new RenderTextureDescriptor(_rtWidth, _rtHeight, format, 0, 0);
             cmd.GetTemporaryRT(ShadowMapId, desc, FilterMode.Bilinear);
-        }
-
-        private (Vector2 aabbSize, int rtWidth, int rtHeight) GetRtParams()
-        {
-            var aabbSize = new Vector2(_shadowFrustumAABB.size.x, _shadowFrustumAABB.size.z);
-            var rtWidth = Mathf.CeilToInt(aabbSize.x * Settings.ResolutionPerUnit);
-            var rtHeight = Mathf.CeilToInt(aabbSize.y * Settings.ResolutionPerUnit);
-            return (aabbSize, rtWidth, rtHeight);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
@@ -95,16 +97,14 @@ namespace BlobShadows
 
             RecalculateBounds(renderingData.cameraData.camera);
 
-            var (aabbSize, _, _) = GetRtParams();
-
             var cmd = CommandBufferPool.Get(nameof(BlobShadowsRendererPass));
             cmd.SetRenderTarget(ShadowMapId);
             cmd.ClearRenderTarget(false, true, Color.black);
 
-            var shadowFrustumCenter = _shadowFrustumAABB.center;
+            var shadowFrustumCenter = _shadowFrustumAabb.center;
             var offsetX = shadowFrustumCenter.x;
             var offsetY = shadowFrustumCenter.z;
-            var halfSize = aabbSize * 0.5f;
+            var halfSize = _shadowFrustumAabbSize * 0.5f;
             cmd.SetProjectionMatrix(Matrix4x4.Ortho(
                     -halfSize.x + offsetX,
                     halfSize.x + offsetX,
@@ -115,13 +115,35 @@ namespace BlobShadows
             );
 
 
+            CullShadowCasters(shadowFrustumCenter);
+            SetupBlending(material);
+            RenderShadowCasters(cmd, material);
+
+
+            ClearShadowCasters();
+
+            cmd.SetGlobalTexture(ShadowMapId, ShadowMapId);
+            cmd.SetGlobalVector(ShadowMapParamsId,
+                new Vector4(_shadowFrustumAabbSize.x, _shadowFrustumAabbSize.y, offsetX, offsetY)
+            );
+
+            context.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+
+            CommandBufferPool.Release(cmd);
+        }
+
+        private void CullShadowCasters(Vector3 shadowFrustumCenter)
+        {
             var extraShadowScaling = Settings.ExtraShadowScaling;
 
             ClearShadowCasters();
 
-
-            foreach (var shadowCaster in BlobShadows.ShadowCasters)
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var index = 0; index < BlobShadows.ShadowCasters.Count; index++)
             {
+                var shadowCaster = BlobShadows.ShadowCasters[index];
                 var t = shadowCaster.transform;
 
                 var position = t.position;
@@ -132,12 +154,9 @@ namespace BlobShadows
                 var halfSizeX = sizeX * 0.5f * extraShadowScaling;
                 var halfSizeY = sizeY * 0.5f * extraShadowScaling;
                 var shadowBounds = new Bounds(new Vector3(x, shadowFrustumCenter.y, y),
-                    new Vector3(halfSizeX, _shadowFrustumAABB.size.y, halfSizeY)
+                    new Vector3(halfSizeX, _shadowFrustumAabb.size.y, halfSizeY)
                 );
                 if (!GeometryUtility.TestPlanesAABB(_cameraFrustumPlanes, shadowBounds)) continue;
-
-                if (!_shadowCastersByType.TryGetValue(shadowCaster.Type, out var list))
-                    _shadowCastersByType[shadowCaster.Type] = list = new List<Matrix4x4>();
 
                 var rotationEuler = t.eulerAngles;
                 rotationEuler.z = -rotationEuler.y;
@@ -150,15 +169,38 @@ namespace BlobShadows
                     new Vector3(halfSizeX, halfSizeY, 1f)
                 );
 
+                var list = _shadowCastersByType[(int) shadowCaster.Type];
                 list.Add(matrix);
             }
+        }
 
-            SetupBlending(material);
-
-            foreach (var kvp in _shadowCastersByType)
+        private void ClearShadowCasters()
+        {
+            foreach (var list in _shadowCastersByType)
             {
-                var sdfType = kvp.Key;
-                var shadowCasters = kvp.Value;
+                list.Clear();
+            }
+        }
+
+        private void SetupBlending(Material material)
+        {
+            var (srcBlend, dstBlend, blendOp) = Settings.BlendingMode switch
+            {
+                BlobBlendingMode.MetaBalls => (BlendMode.SrcColor, BlendMode.One, BlendOp.Add),
+                BlobBlendingMode.Voronoi => (BlendMode.One, BlendMode.One, BlendOp.Max),
+                _ => throw new ArgumentOutOfRangeException(),
+            };
+            material.SetFloat(SrcBlendId, (float) srcBlend);
+            material.SetFloat(DstBlendId, (float) dstBlend);
+            material.SetFloat(BlendOpId, (float) blendOp);
+        }
+
+        private void RenderShadowCasters(CommandBuffer cmd, Material material)
+        {
+            for (var i = 0; i < _shadowCastersByType.Length; i++)
+            {
+                var sdfType = (BlobShadowCaster.SdfType) i;
+                var shadowCasters = _shadowCastersByType[i];
                 if (shadowCasters.Count == 0) continue;
 
                 var keyword = sdfType switch
@@ -187,33 +229,6 @@ namespace BlobShadows
 
                 cmd.DisableShaderKeyword(keyword);
             }
-
-
-            ClearShadowCasters();
-
-            Graphics.SetRenderTarget(null);
-
-            cmd.SetGlobalTexture(ShadowMapId, ShadowMapId);
-            cmd.SetGlobalVector(ShadowMapParamsId, new Vector4(aabbSize.x, aabbSize.y, offsetX, offsetY));
-
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-
-            CommandBufferPool.Release(cmd);
-        }
-
-        private void SetupBlending(Material material)
-        {
-            var (srcBlend, dstBlend, blendOp) = Settings.BlendingMode switch
-            {
-                BlobBlendingMode.MetaBalls => (BlendMode.SrcColor, BlendMode.One, BlendOp.Add),
-                BlobBlendingMode.Voronoi => (BlendMode.One, BlendMode.One, BlendOp.Max),
-                _ => throw new ArgumentOutOfRangeException(),
-            };
-            material.SetFloat(SrcBlendId, (float) srcBlend);
-            material.SetFloat(DstBlendId, (float) dstBlend);
-            material.SetFloat(BlendOpId, (float) blendOp);
         }
 
         private void DrawQuads(CommandBuffer cmd, Material material, int count)
@@ -231,14 +246,6 @@ namespace BlobShadows
                 }
         }
 
-        private void ClearShadowCasters()
-        {
-            foreach (var list in _shadowCastersByType.Values)
-            {
-                list.Clear();
-            }
-        }
-
         private void RecalculateBounds(Camera camera)
         {
             var min = Vector3.positiveInfinity;
@@ -253,7 +260,7 @@ namespace BlobShadows
                 _corners
             );
             AddToMinMax(ref min, ref max, camera.transform, _corners);
-            _shadowFrustumAABB =
+            _shadowFrustumAabb =
                 new Bounds((max + min) * 0.5f, max - min + Vector3.one * Settings.ShadowFrustumPadding);
 
             GeometryUtility.CalculateFrustumPlanes(camera, _cameraFrustumPlanes);
