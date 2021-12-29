@@ -4,6 +4,9 @@ Shader "Hidden/Blob Shadows/Caster"
     {
         _Threshold ("Threshold", Range(-0.5, 1)) = 0
         _Smoothness ("Smoothness", Range(0.001, 1)) = 1
+        _SrcBlend ("Src Blend", Float) = 0
+        _DstBlend ("Src Blend", Float) = 0
+        _BlendOp ("Blend Op", Float) = 0
     }
     SubShader
     {
@@ -11,19 +14,15 @@ Shader "Hidden/Blob Shadows/Caster"
         ZWrite Off
         ColorMask R
         
-        // "Meta-balls" blending
-        Blend SrcColor One
-        BlendOp Add
-        
-        // Voronoi-like blending
-//        Blend One One
-//        BlendOp Max
+        Blend [_SrcBlend] [_DstBlend]
+        BlendOp [_BlendOp]
 
         Pass
         {
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
@@ -34,12 +33,16 @@ Shader "Hidden/Blob Shadows/Caster"
             {
                 float4 vertex : POSITION;
                 float2 uv : TEXCOORD0;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
             {
                 float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
+
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             CBUFFER_START(UnityPerMaterial);
@@ -50,8 +53,13 @@ Shader "Hidden/Blob Shadows/Caster"
             v2f vert (appdata v)
             {
                 v2f o;
+
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_TRANSFER_INSTANCE_ID(v, o);
+                
                 o.vertex = TransformObjectToHClip(v.vertex.xyz);
                 o.uv = v.uv;
+                
                 return o;
             }
 

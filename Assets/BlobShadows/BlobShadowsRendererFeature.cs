@@ -22,7 +22,6 @@ namespace BlobShadows
             else
                 DestroyImmediate(_material);
             _material = null;
-            _pass.Dispose();
             _pass = null;
         }
 
@@ -31,13 +30,16 @@ namespace BlobShadows
         {
             _settings ??= new Settings();
             if (!_material)
-                _material = new Material(Shader.Find("Hidden/Blob Shadows/Caster"));
+                _material = new Material(Shader.Find("Hidden/Blob Shadows/Caster"))
+                {
+                    enableInstancing = SystemInfo.supportsInstancing,
+                };
             _material.SetFloat(ThresholdId, _settings.ShadowThreshold);
             _material.SetFloat(SmoothnessId, _settings.ShadowSmoothness);
             _settings.Material = _material;
             _pass = new BlobShadowsRendererPass
             {
-                renderPassEvent = RenderPassEvent.BeforeRenderingOpaques,
+                renderPassEvent = RenderPassEvent.BeforeRendering,
                 Settings = _settings,
             };
         }
@@ -50,12 +52,19 @@ namespace BlobShadows
         [Serializable]
         public class Settings
         {
+            public enum BlobBlendingMode
+            {
+                MetaBalls,
+                Voronoi,
+            }
+
             [Min(0f)] public float ShadowDistance = 15f;
             [Min(0f)] public float ExtraShadowScaling = 2.5f;
             [Min(1)] public float ResolutionPerUnit = 16;
             [Min(0f)] public float ShadowFrustumPadding = 1f;
             [Range(-0.5f, 1f)] public float ShadowThreshold = 0.2f;
             [Range(0.001f, 2f)] public float ShadowSmoothness = 0.1f;
+            public BlobBlendingMode BlendingMode = BlobBlendingMode.MetaBalls;
 
             public Material Material { get; set; }
         }
