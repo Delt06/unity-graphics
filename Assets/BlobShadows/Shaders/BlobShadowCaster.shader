@@ -81,7 +81,7 @@ Shader "Hidden/Blob Shadows/Caster"
             half4 frag (const v2f i) : SV_Target
             {
                 const half2 duv = abs(i.uv - 0.5) * 2;
-                const half half_size = 0.25;
+                const half half_size = 0.5;
                 #ifdef SDF_CIRCLE
                 const half distance = circle_sdf(duv, half_size);
                 #elif SDF_BOX

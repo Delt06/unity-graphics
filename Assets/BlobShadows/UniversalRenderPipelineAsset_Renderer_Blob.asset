@@ -15,12 +15,12 @@ MonoBehaviour:
   m_Active: 1
   _settings:
     ShadowDistance: 15
-    ExtraShadowScaling: 3
+    ExtraShadowScaling: 3.5
     ResolutionPerUnit: 16
     ShadowFrustumPadding: 1
-    ShadowThreshold: -0.05
-    ShadowSmoothness: 0.876
-    BlendingMode: 0
+    ShadowThreshold: -0.361
+    ShadowSmoothness: 0.693
+    BlendingMode: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
