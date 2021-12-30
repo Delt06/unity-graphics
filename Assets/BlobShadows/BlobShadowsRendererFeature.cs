@@ -65,6 +65,7 @@ namespace BlobShadows
             [Range(-0.5f, 1f)] public float ShadowThreshold = 0.2f;
             [Range(0.001f, 2f)] public float ShadowSmoothness = 0.1f;
             public BlobBlendingMode BlendingMode = BlobBlendingMode.MetaBalls;
+            public FilterMode FilterMode = FilterMode.Bilinear;
 
             public Material Material { get; set; }
         }

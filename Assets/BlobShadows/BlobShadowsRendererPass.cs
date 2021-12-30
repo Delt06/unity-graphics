@@ -80,7 +80,7 @@ namespace BlobShadows
 
             const RenderTextureFormat format = RenderTextureFormat.R8;
             var desc = new RenderTextureDescriptor(_rtWidth, _rtHeight, format, 0, 0);
-            cmd.GetTemporaryRT(ShadowMapId, desc, FilterMode.Bilinear);
+            cmd.GetTemporaryRT(ShadowMapId, desc, Settings.FilterMode);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
