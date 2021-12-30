@@ -18,9 +18,10 @@ MonoBehaviour:
     ExtraShadowScaling: 1.75
     ResolutionPerUnit: 16
     ShadowFrustumPadding: 1
-    ShadowThreshold: 0.106
-    ShadowSmoothness: 0.462
+    ShadowThreshold: -0.051
+    ShadowSmoothness: 0.86
     BlendingMode: 1
+    FilterMode: 1
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
