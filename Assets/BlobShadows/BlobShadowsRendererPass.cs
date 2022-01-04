@@ -250,7 +250,7 @@ namespace BlobShadows
             const int subMeshIndex = 0;
             const int shaderPass = 0;
 
-            if (material.enableInstancing)
+            if (material.enableInstancing && SystemInfo.supportsInstancing)
                 cmd.DrawMeshInstanced(_quadMesh, subMeshIndex, material, shaderPass, _matrices, count);
             else
                 for (var i = 0; i < count; i++)
