@@ -1,6 +1,5 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace BlobShadows
@@ -11,34 +10,24 @@ namespace BlobShadows
         private static readonly int SmoothnessId = Shader.PropertyToID("_Smoothness");
         [SerializeField] private Settings _settings;
 
-        private Material _material;
         private BlobShadowsRendererPass _pass;
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            CoreUtils.Destroy(_material);
-            _material = null;
-            _pass = null;
-        }
 
 
         public override void Create()
         {
-            _material = new Material(Shader.Find("Hidden/Blob Shadows/Caster"))
-            {
-                enableInstancing = SystemInfo.supportsInstancing,
-            };
-            _material.SetFloat(ThresholdId, _settings.ShadowThreshold);
-            _material.SetFloat(SmoothnessId, _settings.ShadowSmoothness);
             _pass = new BlobShadowsRendererPass();
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
             _pass.Settings = _settings;
-            _pass.Material = _material;
+
+            if (_settings.Material)
+            {
+                _settings.Material.SetFloat(ThresholdId, _settings.ShadowThreshold);
+                _settings.Material.SetFloat(SmoothnessId, _settings.ShadowSmoothness);
+            }
+
             renderer.EnqueuePass(_pass);
         }
 
@@ -59,6 +48,8 @@ namespace BlobShadows
             [Range(0.001f, 2f)] public float ShadowSmoothness = 0.1f;
             public BlobBlendingMode BlendingMode = BlobBlendingMode.MetaBalls;
             public FilterMode FilterMode = FilterMode.Bilinear;
+
+            public Material Material;
         }
     }
 }

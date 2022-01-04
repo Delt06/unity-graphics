@@ -1,11 +1,16 @@
-Shader "Hidden/Blob Shadows/Caster"
+Shader "Blob Shadows/Caster"
 {
     Properties
     {
+        [HideInInspector]
         _Threshold ("Threshold", Range(-0.5, 1)) = 0
+        [HideInInspector]
         _Smoothness ("Smoothness", Range(0.001, 1)) = 1
+        [HideInInspector]
         _SrcBlend ("Src Blend", Float) = 0
+        [HideInInspector]
         _DstBlend ("Src Blend", Float) = 0
+        [HideInInspector]
         _BlendOp ("Blend Op", Float) = 0
     }
     SubShader

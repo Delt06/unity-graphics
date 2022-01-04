@@ -74,7 +74,6 @@ namespace BlobShadows
 
         public BlobShadowsRendererFeature.Settings Settings { get; set; }
 
-        public Material Material { get; set; }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -109,8 +108,11 @@ namespace BlobShadows
             if (Settings == null)
                 return;
 
-            var material = Material;
+            var material = Settings.Material;
             if (material == null)
+                return;
+
+            if (_quadMesh == null)
                 return;
 
             var cmd = CommandBufferPool.Get(nameof(BlobShadowsRendererPass));
@@ -248,7 +250,7 @@ namespace BlobShadows
             const int subMeshIndex = 0;
             const int shaderPass = 0;
 
-            if (SystemInfo.supportsInstancing)
+            if (material.enableInstancing)
                 cmd.DrawMeshInstanced(_quadMesh, subMeshIndex, material, shaderPass, _matrices, count);
             else
                 for (var i = 0; i < count; i++)

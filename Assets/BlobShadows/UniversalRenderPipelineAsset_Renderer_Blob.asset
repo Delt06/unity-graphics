@@ -22,6 +22,7 @@ MonoBehaviour:
     ShadowSmoothness: 0.86
     BlendingMode: 0
     FilterMode: 1
+    Material: {fileID: 2100000, guid: f9efedaa1be82e3419069de34d3f3a2d, type: 2}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
