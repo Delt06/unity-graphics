@@ -20,7 +20,7 @@ MonoBehaviour:
     ShadowFrustumPadding: 1
     ShadowThreshold: -0.051
     ShadowSmoothness: 0.86
-    BlendingMode: 1
+    BlendingMode: 0
     FilterMode: 1
 --- !u!114 &11400000
 MonoBehaviour:

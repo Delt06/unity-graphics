@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace BlobShadows
@@ -17,10 +18,7 @@ namespace BlobShadows
         {
             base.Dispose(disposing);
 
-            if (Application.isPlaying)
-                Destroy(_material);
-            else
-                DestroyImmediate(_material);
+            // CoreUtils.Destroy(_material);
             _material = null;
             _pass = null;
         }
@@ -28,24 +26,20 @@ namespace BlobShadows
 
         public override void Create()
         {
-            _settings ??= new Settings();
-            if (!_material)
-                _material = new Material(Shader.Find("Hidden/Blob Shadows/Caster"))
-                {
-                    enableInstancing = SystemInfo.supportsInstancing,
-                };
+            _material = new Material(Shader.Find("Hidden/Blob Shadows/Caster"))
+            {
+                enableInstancing = SystemInfo.supportsInstancing,
+            };
             _material.SetFloat(ThresholdId, _settings.ShadowThreshold);
             _material.SetFloat(SmoothnessId, _settings.ShadowSmoothness);
-            _settings.Material = _material;
-            _pass = new BlobShadowsRendererPass
-            {
-                renderPassEvent = RenderPassEvent.BeforeRendering,
-                Settings = _settings,
-            };
+            _pass = new BlobShadowsRendererPass();
         }
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            _pass.renderPassEvent = RenderPassEvent.BeforeRendering;
+            _pass.Settings = _settings;
+            _pass.Material = _material;
             renderer.EnqueuePass(_pass);
         }
 
@@ -66,8 +60,6 @@ namespace BlobShadows
             [Range(0.001f, 2f)] public float ShadowSmoothness = 0.1f;
             public BlobBlendingMode BlendingMode = BlobBlendingMode.MetaBalls;
             public FilterMode FilterMode = FilterMode.Bilinear;
-
-            public Material Material { get; set; }
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static BlobShadows.BlobShadowsRendererFeature.Settings;
@@ -13,7 +14,6 @@ namespace BlobShadows
     {
         private const int MaxInstances = 1023;
         private const string ShadowMapName = "_ShadowMapBlob";
-        private static readonly int ShadowMapId = Shader.PropertyToID(ShadowMapName);
         private static readonly int ShadowMapParamsId = Shader.PropertyToID("_ShadowMapBlobParams");
         private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
@@ -28,6 +28,8 @@ namespace BlobShadows
         private int _rtWidth;
         private Bounds _shadowFrustumAabb;
         private Vector2 _shadowFrustumAabbSize;
+
+        private RenderTargetHandle _shadowMapHandle;
 
         public BlobShadowsRendererPass()
         {
@@ -65,9 +67,13 @@ namespace BlobShadows
             {
                 _shadowCastersByType[i] = new List<Matrix4x4>();
             }
+
+            _shadowMapHandle.Init(ShadowMapName);
         }
 
         public BlobShadowsRendererFeature.Settings Settings { get; set; }
+
+        public Material Material { get; set; }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
@@ -80,26 +86,33 @@ namespace BlobShadows
 
             const RenderTextureFormat format = RenderTextureFormat.R8;
             var desc = new RenderTextureDescriptor(_rtWidth, _rtHeight, format, 0, 0);
-            cmd.GetTemporaryRT(ShadowMapId, desc, Settings.FilterMode);
+
+            cmd.GetTemporaryRT(_shadowMapHandle.id, desc, Settings.FilterMode);
+            cmd.SetRenderTarget(_shadowMapHandle.Identifier(), RenderBufferLoadAction.DontCare,
+                RenderBufferStoreAction.Store
+            );
+            cmd.ClearRenderTarget(false, true, Color.black);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
             base.OnCameraCleanup(cmd);
-            cmd.ReleaseTemporaryRT(ShadowMapId);
+            cmd.ReleaseTemporaryRT(_shadowMapHandle.id);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            if (Settings == null) return;
-            var material = Settings.Material;
-            if (material == null) return;
+            if (Settings == null)
+                return;
+
+            var material = Material;
+            if (material == null)
+                return;
 
             RecalculateBounds(renderingData.cameraData.camera);
 
             var cmd = CommandBufferPool.Get(nameof(BlobShadowsRendererPass));
-            cmd.SetRenderTarget(ShadowMapId);
-            cmd.ClearRenderTarget(false, true, Color.black);
+            cmd.Clear();
 
             var shadowFrustumCenter = _shadowFrustumAabb.center;
             var offsetX = shadowFrustumCenter.x;
@@ -114,15 +127,13 @@ namespace BlobShadows
                 )
             );
 
-
             CullShadowCasters(shadowFrustumCenter);
             SetupBlending(material);
             RenderShadowCasters(cmd, material);
 
-
             ClearShadowCasters();
 
-            cmd.SetGlobalTexture(ShadowMapId, ShadowMapId);
+            cmd.SetGlobalTexture(ShadowMapName, _shadowMapHandle.Identifier());
             cmd.SetGlobalVector(ShadowMapParamsId,
                 new Vector4(_shadowFrustumAabbSize.x, _shadowFrustumAabbSize.y, offsetX, offsetY)
             );
@@ -233,6 +244,8 @@ namespace BlobShadows
 
         private void DrawQuads(CommandBuffer cmd, Material material, int count)
         {
+            Assert.IsTrue(material.enableInstancing, "Instancing is not enabled in the material.");
+
             const int subMeshIndex = 0;
             const int shaderPass = 0;
 
