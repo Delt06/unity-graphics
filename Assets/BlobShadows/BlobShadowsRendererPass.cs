@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static BlobShadows.BlobShadowsRendererFeature.Settings;
@@ -113,8 +112,6 @@ namespace BlobShadows
             var material = Material;
             if (material == null)
                 return;
-
-            RecalculateBounds(renderingData.cameraData.camera);
 
             var cmd = CommandBufferPool.Get(nameof(BlobShadowsRendererPass));
             cmd.Clear();
@@ -248,8 +245,6 @@ namespace BlobShadows
 
         private void DrawQuads(CommandBuffer cmd, Material material, int count)
         {
-            Assert.IsTrue(material.enableInstancing, "Instancing is not enabled in the material.");
-
             const int subMeshIndex = 0;
             const int shaderPass = 0;
 
