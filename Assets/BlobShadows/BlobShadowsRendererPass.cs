@@ -83,9 +83,17 @@ namespace BlobShadows
 
             RecalculateBounds(renderingData.cameraData.camera);
             _shadowFrustumAabbSize = new Vector2(_shadowFrustumAabb.size.x, _shadowFrustumAabb.size.z);
+        }
+
+        public override void OnCameraCleanup(CommandBuffer cmd)
+        {
+            cmd.ReleaseTemporaryRT(_shadowMapHandle.id);
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
             _rtWidth = Mathf.CeilToInt(_shadowFrustumAabbSize.x * Settings.ResolutionPerUnit);
             _rtHeight = Mathf.CeilToInt(_shadowFrustumAabbSize.y * Settings.ResolutionPerUnit);
-
             const RenderTextureFormat format = RenderTextureFormat.R8;
             var desc = new RenderTextureDescriptor(_rtWidth, _rtHeight, format, 0, 0);
 
@@ -95,11 +103,6 @@ namespace BlobShadows
                 RenderBufferStoreAction.DontCare
             );
             cmd.ClearRenderTarget(false, true, Color.black);
-        }
-
-        public override void OnCameraCleanup(CommandBuffer cmd)
-        {
-            cmd.ReleaseTemporaryRT(_shadowMapHandle.id);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
