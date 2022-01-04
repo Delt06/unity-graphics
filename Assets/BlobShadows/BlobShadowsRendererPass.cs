@@ -34,7 +34,7 @@ namespace BlobShadows
         public BlobShadowsRendererPass()
         {
             renderPassEvent = RenderPassEvent.BeforeRenderingShadows;
-            
+
             //  3---2
             //  |   |
             //  0---1
@@ -90,7 +90,7 @@ namespace BlobShadows
             var desc = new RenderTextureDescriptor(_rtWidth, _rtHeight, format, 0, 0);
 
             cmd.GetTemporaryRT(_shadowMapHandle.id, desc, Settings.FilterMode);
-            cmd.SetRenderTarget(_shadowMapHandle.Identifier(), 
+            cmd.SetRenderTarget(_shadowMapHandle.Identifier(),
                 RenderBufferLoadAction.DontCare,
                 RenderBufferStoreAction.DontCare
             );
@@ -120,14 +120,13 @@ namespace BlobShadows
             var offsetX = shadowFrustumCenter.x;
             var offsetY = shadowFrustumCenter.z;
             var halfSize = _shadowFrustumAabbSize * 0.5f;
-            cmd.SetProjectionMatrix(Matrix4x4.Ortho(
-                    -halfSize.x + offsetX,
-                    halfSize.x + offsetX,
-                    -halfSize.y + offsetY,
-                    halfSize.y + offsetY,
-                    0f, 1f
-                )
+            var view = Matrix4x4.Translate(new Vector3(-offsetX, -offsetY, -1f));
+            var proj = Matrix4x4.TRS(Vector3.zero, Quaternion.identity,
+                new Vector3(1f / halfSize.x, 1f / halfSize.y, 1f)
             );
+
+            cmd.SetViewport(new Rect(0f, 0f, _rtWidth, _rtHeight));
+            cmd.SetViewProjectionMatrices(view, proj);
 
             CullShadowCasters(shadowFrustumCenter);
             SetupBlending(material);
