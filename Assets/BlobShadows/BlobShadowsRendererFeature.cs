@@ -37,7 +37,6 @@ namespace BlobShadows
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            _pass.renderPassEvent = RenderPassEvent.BeforeRendering;
             _pass.Settings = _settings;
             _pass.Material = _material;
             renderer.EnqueuePass(_pass);

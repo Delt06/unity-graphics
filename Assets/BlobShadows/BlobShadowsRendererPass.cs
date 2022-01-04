@@ -33,6 +33,8 @@ namespace BlobShadows
 
         public BlobShadowsRendererPass()
         {
+            renderPassEvent = RenderPassEvent.BeforeRenderingShadows;
+            
             //  3---2
             //  |   |
             //  0---1
@@ -88,15 +90,15 @@ namespace BlobShadows
             var desc = new RenderTextureDescriptor(_rtWidth, _rtHeight, format, 0, 0);
 
             cmd.GetTemporaryRT(_shadowMapHandle.id, desc, Settings.FilterMode);
-            cmd.SetRenderTarget(_shadowMapHandle.Identifier(), RenderBufferLoadAction.DontCare,
-                RenderBufferStoreAction.Store
+            cmd.SetRenderTarget(_shadowMapHandle.Identifier(), 
+                RenderBufferLoadAction.DontCare,
+                RenderBufferStoreAction.DontCare
             );
             cmd.ClearRenderTarget(false, true, Color.black);
         }
 
         public override void OnCameraCleanup(CommandBuffer cmd)
         {
-            base.OnCameraCleanup(cmd);
             cmd.ReleaseTemporaryRT(_shadowMapHandle.id);
         }
 
