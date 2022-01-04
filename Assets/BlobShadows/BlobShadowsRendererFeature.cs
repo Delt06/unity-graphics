@@ -18,7 +18,7 @@ namespace BlobShadows
         {
             base.Dispose(disposing);
 
-            // CoreUtils.Destroy(_material);
+            CoreUtils.Destroy(_material);
             _material = null;
             _pass = null;
         }
