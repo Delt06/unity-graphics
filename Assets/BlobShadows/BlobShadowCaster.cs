@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace BlobShadows
 {
-    [ExecuteAlways]
     public class BlobShadowCaster : MonoBehaviour
     {
         public enum SdfType
