@@ -41,3 +41,11 @@ Results (in ms):
 
 ## Drawing
 Runtime drawing on the GPU side with configurable brush (color, size, hardness).
+
+## Layered Grass
+
+![Blob Shadows](Documentation/layered_grass.jpg)
+
+Grass shader made with the technique that is typically used for fur ([Reference](https://xbdev.net/directx3dx/specialX/Fur/index.php)).
+
+> Warning: the shader has poor performance on both mobile and desktop platforms. It is only a technical demo, which might not be suitable for production even if further optimized.
