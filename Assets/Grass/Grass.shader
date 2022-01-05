@@ -22,7 +22,8 @@ Shader "DELTation/Layered Grass (Instanced)"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-
+            
+            #pragma multi_compile_fog
             #pragma multi_compile_instancing
 
             struct appdata
@@ -37,8 +38,8 @@ Shader "DELTation/Layered Grass (Instanced)"
 
             struct v2f
             {
-                float2 uv : TEXCOORD0;
                 float4 vertex : SV_POSITION;
+                float3 uv_fog : TEXCOORD0;
                 float3 tangent_ws : TEXCOORD1;
                 float3 normal_ws : TEXCOORD2;
 
@@ -84,10 +85,10 @@ Shader "DELTation/Layered Grass (Instanced)"
                 const float depth = LinearEyeDepth(position_cs.z / position_cs.w, _ZBufferParams);
                 const half wind_speed = _WindSpeed * saturate(1 - depth / _WindMaxDistance);
                 const half wind_factor = sin(wind_speed * _Time.y);
-                o.uv = uv + offset.zw * wind_factor;
+                o.uv_fog.xy = uv + offset.zw * wind_factor;
                 o.normal_ws = normal_ws;
                 o.tangent_ws = TransformObjectToWorldNormal(v.tangent);
-
+                o.uv_fog.z = ComputeFogFactor(position_cs.z);
                 
                 return o;
             }
@@ -102,7 +103,7 @@ Shader "DELTation/Layered Grass (Instanced)"
                 UNITY_SETUP_INSTANCE_ID(i);
 
                 const float uv_offset = 0.01;
-                const float2 uv = i.uv;
+                const float2 uv = i.uv_fog.xy;
                 const half noise = sample_noise(uv);
                 clip(noise - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClipThreshold));
                 const half dx = (noise - sample_noise(uv, float2(-uv_offset, 0))) / uv_offset;
@@ -115,8 +116,10 @@ Shader "DELTation/Layered Grass (Instanced)"
                 const half3 albedo = lerp(color_bottom, color_top, _Offsets[instance_id].y);
                 const half n_dot_l = saturate(dot(normal_ws, GetMainLight().direction));
                 const half3 shadow_color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ShadowColor);
-                half3 diffuse = lerp(albedo * shadow_color, albedo, n_dot_l); 
-                return half4(diffuse, 1);
+                const half3 diffuse = lerp(albedo * shadow_color, albedo, n_dot_l);
+                half3 fragment_color = diffuse;
+                fragment_color = MixFog(fragment_color, i.uv_fog.z); 
+                return half4(fragment_color, 1);
             }
             ENDHLSL
         }
