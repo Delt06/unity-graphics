@@ -11,7 +11,7 @@ Shader "DELTation/Layered Grass (Instanced)"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" "Queue"="AlphaTest"}
+        Tags { "RenderType"="TransparentCutout" "Queue"="AlphaTest"}
         LOD 100
 
         Pass
@@ -57,8 +57,10 @@ Shader "DELTation/Layered Grass (Instanced)"
             TEXTURE2D(_NoiseTex);
             SAMPLER(sampler_NoiseTex);
             half4 _Offsets[1023];
+            float _WindSpeed;
+            float _WindMaxDistance;
 
-            v2f vert (appdata v, uint instanceID: SV_InstanceID)
+            v2f vert (const appdata v, uint instance_id: SV_InstanceID)
             {
                 v2f o;
 
@@ -67,17 +69,22 @@ Shader "DELTation/Layered Grass (Instanced)"
 
                 const float3 normal_ws = TransformObjectToWorldNormal(v.normal);
                 
-                const half4 offset = _Offsets[instanceID];
+                const half4 offset = _Offsets[instance_id];
                 half vertex_offset = offset.x;
                 vertex_offset *= SAMPLE_TEXTURE2D_LOD(_NoiseTex, sampler_NoiseTex, v.uv, 0).r;
 
                 const float3 position_ws = TransformObjectToWorld(v.vertex) + normal_ws * vertex_offset;
-                
-                o.vertex = TransformWorldToHClip(position_ws);
+
+                const float4 position_cs = TransformWorldToHClip(position_ws); 
+                o.vertex = position_cs;
                 float2 uv = v.uv;
                 float4 noise_tex_st = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _NoiseTex_ST);
                 uv = uv * noise_tex_st.xy + noise_tex_st.zw;
-                o.uv = uv + offset.zw;
+
+                const float depth = LinearEyeDepth(position_cs.z / position_cs.w, _ZBufferParams);
+                const half wind_speed = _WindSpeed * saturate(1 - depth / _WindMaxDistance);
+                const half wind_factor = sin(wind_speed * _Time.y);
+                o.uv = uv + offset.zw * wind_factor;
                 o.normal_ws = normal_ws;
                 o.tangent_ws = TransformObjectToWorldNormal(v.tangent);
 
@@ -85,12 +92,12 @@ Shader "DELTation/Layered Grass (Instanced)"
                 return o;
             }
 
-            inline float sample_noise(float2 uv, float2 offset = 0)
+            inline float sample_noise(const float2 uv, const float2 offset = 0)
             {
                 return SAMPLE_TEXTURE2D(_NoiseTex, sampler_NoiseTex, uv + offset).r;
             }
 
-            half4 frag (v2f i, uint instanceID: SV_InstanceID) : SV_Target
+            half4 frag (const v2f i, uint instance_id: SV_InstanceID) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(i);
 
@@ -98,16 +105,16 @@ Shader "DELTation/Layered Grass (Instanced)"
                 const float2 uv = i.uv;
                 const half noise = sample_noise(uv);
                 clip(noise - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClipThreshold));
-                half dx = (noise - sample_noise(uv, float2(-uv_offset, 0))) / uv_offset;
-                half dy = (noise - sample_noise(uv, float2(0, -uv_offset))) / uv_offset;
-                float3 bitangent_ws = cross(i.normal_ws, i.tangent_ws);
-                float3 normal_ws = normalize(bitangent_ws * dy +  i.tangent_ws * dx + i.normal_ws * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Bending));
+                const half dx = (noise - sample_noise(uv, float2(-uv_offset, 0))) / uv_offset;
+                const half dy = (noise - sample_noise(uv, float2(0, -uv_offset))) / uv_offset;
+                const float3 bitangent_ws = cross(i.normal_ws, i.tangent_ws);
+                const float3 normal_ws = normalize(bitangent_ws * dy +  i.tangent_ws * dx + i.normal_ws * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Bending));
 
-                half3 color_bottom = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ColorBottom);
-                half3 color_top = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ColorTop);
-                half3 albedo = lerp(color_bottom, color_top, _Offsets[instanceID].y);
-                half n_dot_l = saturate(dot(normal_ws, GetMainLight().direction));
-                half3 shadow_color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ShadowColor);
+                const half3 color_bottom = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ColorBottom);
+                const half3 color_top = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ColorTop);
+                const half3 albedo = lerp(color_bottom, color_top, _Offsets[instance_id].y);
+                const half n_dot_l = saturate(dot(normal_ws, GetMainLight().direction));
+                const half3 shadow_color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ShadowColor);
                 half3 diffuse = lerp(albedo * shadow_color, albedo, n_dot_l); 
                 return half4(diffuse, 1);
             }

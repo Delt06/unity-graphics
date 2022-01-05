@@ -11,6 +11,8 @@ namespace Grass
         [SerializeField] private AnimationCurve _stepsOverCameraDistance;
         [SerializeField] [Range(0f, 0.1f)] private float _maxUvOffset = 0.1f;
         [SerializeField] private float _uvOffsetFrequency = 1f;
+        [SerializeField] [Min(0f)] private float _windSpeed = 1f;
+        [SerializeField] [Min(0f)] private float _windMaxDistance = 25f;
 
         public Material Material => _material;
 
@@ -23,5 +25,9 @@ namespace Grass
         public float MaxUvOffset => _maxUvOffset;
 
         public float UVOffsetFrequency => _uvOffsetFrequency;
+
+        public float WindSpeed => _windSpeed;
+
+        public float WindMaxDistance => _windMaxDistance;
     }
 }

@@ -48,5 +48,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  _maxUvOffset: 0
-  _uvOffsetFrequency: -1.4
+  _maxUvOffset: 0.002
+  _uvOffsetFrequency: 15
+  _windSpeed: 2
+  _windMaxDistance: 15
