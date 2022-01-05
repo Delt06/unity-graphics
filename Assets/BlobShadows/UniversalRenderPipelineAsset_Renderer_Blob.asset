@@ -14,12 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   _settings:
-    ShadowDistance: 15
-    ExtraShadowScaling: 3
-    ResolutionPerUnit: 16
+    ShadowDistance: 11.4
+    ExtraShadowScaling: 1.75
+    ResolutionPerUnit: 8
     ShadowFrustumPadding: 1
-    ShadowThreshold: -0.05
-    ShadowSmoothness: 0.876
+    ShadowThreshold: -0.051
+    ShadowSmoothness: 0.86
+    BlendingMode: 0
+    FilterMode: 1
+    Material: {fileID: 2100000, guid: f9efedaa1be82e3419069de34d3f3a2d, type: 2}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
