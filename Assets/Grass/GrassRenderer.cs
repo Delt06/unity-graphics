@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Unity.Mathematics;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Grass
@@ -8,12 +8,14 @@ namespace Grass
     public class GrassRenderer : MonoBehaviour
     {
         private const int MaxInstances = 1023;
-        private static readonly int OffsetsId = Shader.PropertyToID("_Offsets");
 
+        private static readonly int OffsetsId = Shader.PropertyToID("_Offsets");
+        private static readonly int WindSpeedId = Shader.PropertyToID("_WindSpeed");
+        private static readonly int WindMaxDistanceId = Shader.PropertyToID("_WindMaxDistance");
         [SerializeField] private GrassRenderingSettings _settings;
 
+        private readonly List<GrassChunk> _chunks = new List<GrassChunk>();
         private readonly Plane[] _frustumPlanes = new Plane[6];
-        private readonly List<Matrix4x4> _matrices = new List<Matrix4x4>();
         private readonly Vector4[] _offsets = new Vector4[MaxInstances];
         private MaterialPropertyBlock _materialPropertyBlock;
 
@@ -22,58 +24,66 @@ namespace Grass
 #if DEBUG
             if (_settings == null) return;
 
-            var material = _settings.Material;
-            if (material == null) return;
+            if (_settings.Material == null)
+            {
+                Debug.LogWarning("Material is not assigned in the settings.");
+                return;
+            }
 
-            var mesh = _settings.Mesh;
-            if (mesh == null) return;
+            if (_settings.Mesh == null)
+            {
+                Debug.LogWarning("Mesh is not assigned in the settings.");
+                return;
+            }
 #endif
 
             var cam = Camera.main;
             if (cam == null) return;
-
-            var matrix = transform.localToWorldMatrix;
-            var center = matrix.MultiplyPoint(Vector3.zero);
             GeometryUtility.CalculateFrustumPlanes(cam, _frustumPlanes);
 
-            var worldBounds = new Bounds(center, Vector3.zero);
-            var meshBounds = mesh.bounds;
-            worldBounds.Encapsulate(matrix.MultiplyPoint(meshBounds.min));
-            worldBounds.Encapsulate(matrix.MultiplyPoint(meshBounds.max));
-
-            if (!GeometryUtility.TestPlanesAABB(_frustumPlanes, worldBounds))
-                return;
-
-            var cameraDistance = Vector3.Distance(center, cam.transform.position);
-            var steps = (int) _settings.StepsOverCameraDistance.Evaluate(cameraDistance);
-            if (steps <= 0) return;
-
-            _matrices.Clear();
-            var maxOffset = _settings.MaxOffset;
-            var uvOffsetFrequency = _settings.UVOffsetFrequency;
-            var maxUvOffset = _settings.MaxUvOffset;
-
-            for (var i = 0; i < steps; i++)
-            {
-                _matrices.Add(matrix);
-                var normalizedOffset = (float) i / (steps - 1);
-                var offset = new Vector4
-                {
-                    x = normalizedOffset * maxOffset,
-                    y = normalizedOffset,
-                };
-
-                math.sincos(normalizedOffset * uvOffsetFrequency, out var sin, out var cos);
-                var uvOffset = new float2(sin, cos) * (maxUvOffset * normalizedOffset);
-                offset.z = uvOffset.x;
-                offset.w = uvOffset.y;
-
-                _offsets[i] = offset;
-            }
-
+            var meshBounds = _settings.Mesh.bounds;
+            var cameraPosition = cam.transform.position;
             _materialPropertyBlock ??= new MaterialPropertyBlock();
+
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var index = 0; index < _chunks.Count; index++)
+            {
+                var chunk = _chunks[index];
+                var chunkMatrix = chunk.GetMatrix();
+                var center = chunkMatrix.MultiplyPoint(Vector3.zero);
+                var worldBounds = GetWorldBounds(center, ref chunkMatrix, meshBounds);
+
+                if (!GeometryUtility.TestPlanesAABB(_frustumPlanes, worldBounds))
+                    continue;
+
+                chunk.Render(_settings, cameraPosition, _offsets, _materialPropertyBlock, UpdatePropertyBlock);
+            }
+        }
+
+        private void UpdatePropertyBlock()
+        {
             _materialPropertyBlock.SetVectorArray(OffsetsId, _offsets);
-            Graphics.DrawMeshInstanced(mesh, 0, material, _matrices, _materialPropertyBlock);
+            _materialPropertyBlock.SetFloat(WindSpeedId, _settings.WindSpeed);
+            _materialPropertyBlock.SetFloat(WindMaxDistanceId, _settings.WindMaxDistance);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Bounds GetWorldBounds(in Vector3 center, ref Matrix4x4 chunkMatrix, in Bounds meshBounds)
+        {
+            var worldBounds = new Bounds(center, Vector3.zero);
+            worldBounds.Encapsulate(chunkMatrix.MultiplyPoint(meshBounds.min));
+            worldBounds.Encapsulate(chunkMatrix.MultiplyPoint(meshBounds.max));
+            return worldBounds;
+        }
+
+        public void Add(GrassChunk chunk)
+        {
+            _chunks.Add(chunk);
+        }
+
+        public void Remove(GrassChunk chunk)
+        {
+            _chunks.Remove(chunk);
         }
     }
 }
