@@ -17,6 +17,8 @@ namespace BlobShadows
         private static readonly int SrcBlendId = Shader.PropertyToID("_SrcBlend");
         private static readonly int DstBlendId = Shader.PropertyToID("_DstBlend");
         private static readonly int BlendOpId = Shader.PropertyToID("_BlendOp");
+        private static readonly ProfilingSampler ProfilingSampler =
+            new ProfilingSampler(nameof(BlobShadowsRendererPass));
 
         private readonly Plane[] _cameraFrustumPlanes = new Plane[6];
         private readonly Vector3[] _corners = new Vector3[4];
@@ -94,13 +96,10 @@ namespace BlobShadows
             _rtHeight = Mathf.CeilToInt(_shadowFrustumAabbSize.y * Settings.ResolutionPerUnit);
             const RenderTextureFormat format = RenderTextureFormat.R8;
             var desc = new RenderTextureDescriptor(_rtWidth, _rtHeight, format, 0, 0);
-
             cmd.GetTemporaryRT(_shadowMapHandle.id, desc, Settings.FilterMode);
-            cmd.SetRenderTarget(_shadowMapHandle.Identifier(),
-                RenderBufferLoadAction.DontCare,
-                RenderBufferStoreAction.DontCare
-            );
-            cmd.ClearRenderTarget(false, true, Color.black);
+
+            ConfigureClear(ClearFlag.Color, Color.black);
+            ConfigureTarget(_shadowMapHandle.Identifier());
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -116,34 +115,36 @@ namespace BlobShadows
                 return;
 
             var cmd = CommandBufferPool.Get(nameof(BlobShadowsRendererPass));
-            cmd.Clear();
 
-            var shadowFrustumCenter = _shadowFrustumAabb.center;
-            var offsetX = shadowFrustumCenter.x;
-            var offsetY = shadowFrustumCenter.z;
-            var halfSize = _shadowFrustumAabbSize * 0.5f;
-            var view = Matrix4x4.Translate(new Vector3(-offsetX, -offsetY, -1f));
-            var proj = Matrix4x4.TRS(Vector3.zero, Quaternion.identity,
-                new Vector3(1f / halfSize.x, 1f / halfSize.y, 1f)
-            );
+            using (var _ = new ProfilingScope(cmd, ProfilingSampler))
+            {
+                cmd.Clear();
+                var shadowFrustumCenter = _shadowFrustumAabb.center;
+                var offsetX = shadowFrustumCenter.x;
+                var offsetY = shadowFrustumCenter.z;
+                var halfSize = _shadowFrustumAabbSize * 0.5f;
+                var view = Matrix4x4.Translate(new Vector3(-offsetX, -offsetY, -1f));
+                var proj = Matrix4x4.TRS(Vector3.zero, Quaternion.identity,
+                    new Vector3(1f / halfSize.x, 1f / halfSize.y, 1f)
+                );
 
-            cmd.SetViewport(new Rect(0f, 0f, _rtWidth, _rtHeight));
-            cmd.SetViewProjectionMatrices(view, proj);
+                cmd.SetViewport(new Rect(0f, 0f, _rtWidth, _rtHeight));
+                cmd.SetViewProjectionMatrices(view, proj);
 
-            CullShadowCasters(shadowFrustumCenter);
-            SetupBlending(material);
-            RenderShadowCasters(cmd, material);
+                CullShadowCasters(shadowFrustumCenter);
+                SetupBlending(material);
+                RenderShadowCasters(cmd, material);
 
-            ClearShadowCasters();
+                ClearShadowCasters();
 
-            cmd.SetGlobalTexture(ShadowMapName, _shadowMapHandle.Identifier());
-            cmd.SetGlobalVector(ShadowMapParamsId,
-                new Vector4(_shadowFrustumAabbSize.x, _shadowFrustumAabbSize.y, offsetX, offsetY)
-            );
+                cmd.SetGlobalTexture(ShadowMapName, _shadowMapHandle.Identifier());
+                cmd.SetGlobalVector(ShadowMapParamsId,
+                    new Vector4(_shadowFrustumAabbSize.x, _shadowFrustumAabbSize.y, offsetX, offsetY)
+                );
 
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+            }
 
             CommandBufferPool.Release(cmd);
         }

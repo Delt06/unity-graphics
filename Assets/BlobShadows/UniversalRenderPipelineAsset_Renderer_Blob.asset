@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Active: 1
   _settings:
-    ShadowDistance: 15
+    ShadowDistance: 11.4
     ExtraShadowScaling: 1.75
-    ResolutionPerUnit: 16
+    ResolutionPerUnit: 8
     ShadowFrustumPadding: 1
     ShadowThreshold: -0.051
     ShadowSmoothness: 0.86
