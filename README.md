@@ -38,3 +38,6 @@ A render feature that adds support for blob shadows:
 Results (in ms):
 - **Blob**: 0.08 (Submit) + 0.21 (Render) = **0.29**
 - **Shadow Maps**: 0.05 (Setup) + 0.21 (PrepareDrawShadows) + 0.21 (Submit) + 0.13 (Render) = **0.6**
+
+## Drawing
+Runtime drawing on the GPU side with configurable brush (color, size, hardness).
