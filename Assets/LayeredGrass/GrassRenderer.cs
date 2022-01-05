@@ -3,12 +3,12 @@ using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Grass
+namespace LayeredGrass
 {
     [ExecuteAlways]
     public class GrassRenderer : MonoBehaviour
     {
-        private const int MaxInstances = 1023;
+        private const int MaxInstances = 32;
 
         private static readonly int OffsetsId = Shader.PropertyToID("_Offsets");
         private static readonly int WindSpeedId = Shader.PropertyToID("_WindSpeed");

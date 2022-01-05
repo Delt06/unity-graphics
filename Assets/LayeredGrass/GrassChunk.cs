@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Grass
+namespace LayeredGrass
 {
     [ExecuteAlways]
     public class GrassChunk : MonoBehaviour

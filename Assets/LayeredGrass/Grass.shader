@@ -39,9 +39,9 @@ Shader "DELTation/Layered Grass (Instanced)"
             struct v2f
             {
                 float4 vertex : SV_POSITION;
-                float3 uv_fog : TEXCOORD0;
-                float3 tangent_ws : TEXCOORD1;
-                float3 normal_ws : TEXCOORD2;
+                half3 uv_fog : TEXCOORD0;
+                half3 tangent_ws : TEXCOORD1;
+                half3 normal_ws : TEXCOORD2;
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
@@ -57,7 +57,7 @@ Shader "DELTation/Layered Grass (Instanced)"
 
             TEXTURE2D(_NoiseTex);
             SAMPLER(sampler_NoiseTex);
-            half4 _Offsets[1023];
+            half4 _Offsets[32];
             float _WindSpeed;
             float _WindMaxDistance;
 
@@ -78,8 +78,8 @@ Shader "DELTation/Layered Grass (Instanced)"
 
                 const float4 position_cs = TransformWorldToHClip(position_ws); 
                 o.vertex = position_cs;
-                float2 uv = v.uv;
-                float4 noise_tex_st = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _NoiseTex_ST);
+                half2 uv = v.uv;
+                const half4 noise_tex_st = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _NoiseTex_ST);
                 uv = uv * noise_tex_st.xy + noise_tex_st.zw;
 
                 const float depth = LinearEyeDepth(position_cs.z / position_cs.w, _ZBufferParams);
@@ -93,7 +93,7 @@ Shader "DELTation/Layered Grass (Instanced)"
                 return o;
             }
 
-            inline float sample_noise(const float2 uv, const float2 offset = 0)
+            inline float sample_noise(const half2 uv, const half2 offset = 0)
             {
                 return SAMPLE_TEXTURE2D(_NoiseTex, sampler_NoiseTex, uv + offset).r;
             }
@@ -102,21 +102,23 @@ Shader "DELTation/Layered Grass (Instanced)"
             {
                 UNITY_SETUP_INSTANCE_ID(i);
 
-                const float uv_offset = 0.01;
-                const float2 uv = i.uv_fog.xy;
+                const half uv_offset = 0.01;
+                const half2 uv = i.uv_fog.xy;
                 const half noise = sample_noise(uv);
                 clip(noise - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ClipThreshold));
-                const half dx = (noise - sample_noise(uv, float2(-uv_offset, 0))) / uv_offset;
-                const half dy = (noise - sample_noise(uv, float2(0, -uv_offset))) / uv_offset;
-                const float3 bitangent_ws = cross(i.normal_ws, i.tangent_ws);
-                const float3 normal_ws = normalize(bitangent_ws * dy +  i.tangent_ws * dx + i.normal_ws * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Bending));
+                const half dx = (noise - sample_noise(uv, half2(-uv_offset, 0))) / uv_offset;
+                const half dy = (noise - sample_noise(uv, half2(0, -uv_offset))) / uv_offset;
+                const half3 bitangent_ws = cross(i.normal_ws, i.tangent_ws);
+                const half3 normal_ws = normalize(bitangent_ws * dy +  i.tangent_ws * dx + i.normal_ws * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Bending));
 
                 const half3 color_bottom = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ColorBottom);
                 const half3 color_top = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ColorTop);
                 const half3 albedo = lerp(color_bottom, color_top, _Offsets[instance_id].y);
-                const half n_dot_l = saturate(dot(normal_ws, GetMainLight().direction));
+
+                const Light main_light = GetMainLight();
+                const half n_dot_l = saturate(dot(normal_ws, main_light.direction));
                 const half3 shadow_color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _ShadowColor);
-                const half3 diffuse = lerp(albedo * shadow_color, albedo, n_dot_l);
+                const half3 diffuse = lerp(albedo * shadow_color, albedo, n_dot_l) * main_light.color;
                 half3 fragment_color = diffuse;
                 fragment_color = MixFog(fragment_color, i.uv_fog.z); 
                 return half4(fragment_color, 1);

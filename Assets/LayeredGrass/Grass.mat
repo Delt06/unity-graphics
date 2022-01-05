@@ -20,13 +20,13 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _NoiseTex:
-        m_Texture: {fileID: 2800000, guid: 1165c29f429caa846822e4701a14fd30, type: 3}
-        m_Scale: {x: 2, y: 2}
+        m_Texture: {fileID: 2800000, guid: 9b500b50455b35e48a2ea96e35839e6c, type: 3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _Bending: 350
     - _BendingUvOffset: 0.01
-    - _ClipThreshold: 0.692
+    - _ClipThreshold: 0.529
     - _OffsetFull: 0.36
     - _WindSpeed: 1.5
     m_Colors:

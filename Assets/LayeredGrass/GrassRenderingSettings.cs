@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Grass
+namespace LayeredGrass
 {
     [CreateAssetMenu(menuName = "DELTation/Grass Rendering Setttings")]
     public class GrassRenderingSettings : ScriptableObject
