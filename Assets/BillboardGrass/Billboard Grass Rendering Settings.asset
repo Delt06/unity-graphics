@@ -22,9 +22,11 @@ MonoBehaviour:
   _lods:
   - Distance: 5
     Density: 1
+  - Distance: 10
+    Density: 0.9
   - Distance: 15
-    Density: 0.78
-  - Distance: 25
-    Density: 0.35
+    Density: 0.5
+  - Distance: 20
+    Density: 0.25
   - Distance: 30
     Density: 0

@@ -10,7 +10,7 @@ namespace BillboardGrass
         [SerializeField] private BillboardGrassRenderer _renderer;
 
         private bool _isGenerated;
-        private List<Matrix4x4>[] _matrices;
+        private Matrix4x4[][] _matrices;
 
         private void OnEnable()
         {
@@ -38,11 +38,11 @@ namespace BillboardGrass
 
             var lods = settings.Lods;
             var lodsCount = lods.Length;
-            _matrices = new List<Matrix4x4>[lodsCount];
+            var matrices = new List<Matrix4x4>[lodsCount];
 
             for (var i = 0; i < lodsCount; i++)
             {
-                _matrices[i] = new List<Matrix4x4>();
+                matrices[i] = new List<Matrix4x4>();
             }
 
             var chunkOrigin = GetOrigin();
@@ -75,26 +75,35 @@ namespace BillboardGrass
                     var otherMatrix = translate * Matrix4x4.Rotate(Quaternion.Euler(0f, 90f + randomAngle, 0f)) *
                                       scale;
 
-                    AddMatrix(matrix, ref random, lods);
-                    AddMatrix(otherMatrix, ref random, lods);
+                    AddMatrix(matrix, ref random, lods, matrices);
+                    AddMatrix(otherMatrix, ref random, lods, matrices);
                 }
+            }
+
+            _matrices = new Matrix4x4[matrices.Length][];
+
+            for (var i = 0; i < _matrices.Length; i++)
+            {
+                _matrices[i] = matrices[i].ToArray();
             }
         }
 
         // ReSharper disable once SuggestBaseTypeForParameter
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AddMatrix(in Matrix4x4 matrix, ref Random random, BillboardGrassRenderingSettings.Lod[] lods)
+        private static void AddMatrix(in Matrix4x4 matrix, ref Random random,
+            BillboardGrassRenderingSettings.Lod[] lods, List<Matrix4x4>[] matrices)
         {
             for (var lodIndex = 0; lodIndex < lods.Length; lodIndex++)
             {
                 var density = lods[lodIndex].Density;
                 if (random.NextFloat() >= density) continue;
 
-                GetMatricesLod(lodIndex).Add(matrix);
+                matrices[lodIndex].Add(matrix);
             }
         }
 
-        public List<Matrix4x4> GetMatricesLod(int lodIndex) => _matrices[lodIndex];
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Matrix4x4[] GetMatricesLod(int lodIndex) => _matrices[lodIndex];
 
         public Vector3 GetOrigin() => transform.position;
     }

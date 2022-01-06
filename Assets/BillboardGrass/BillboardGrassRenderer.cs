@@ -13,16 +13,25 @@ namespace BillboardGrass
 
         private readonly List<BillboardGrassChunk> _grassChunks = new List<BillboardGrassChunk>();
         private readonly Matrix4x4[] _matrices = new Matrix4x4[MaxInstances];
+        private Camera _camera;
+
+        private void Awake()
+        {
+            _camera = Camera.main;
+        }
 
         private void LateUpdate()
         {
-            if (_settings == null) return;
+#if DEBUG
+            if (_settings == null)
+            {
+                Debug.LogWarning("Settings are not assigned.");
+                return;
+            }
+#endif
 
-            var cam = Camera.main;
-            if (cam == null) return;
-
-            var cameraPosition = cam.transform.position;
-            GeometryUtility.CalculateFrustumPlanes(cam, _frustumPlanes);
+            var cameraPosition = _camera.transform.position;
+            GeometryUtility.CalculateFrustumPlanes(_camera, _frustumPlanes);
 
             var instancesCount = 0;
             var lods = _settings.Lods;
@@ -41,7 +50,7 @@ namespace BillboardGrass
 
                 var lodIndex = GetLodIndex(cameraDistance, lods);
                 var matricesLod = grassChunk.GetMatricesLod(lodIndex);
-                var matricesCount = matricesLod.Count;
+                var matricesCount = matricesLod.Length;
                 for (var i = 0; i < matricesCount; i++)
                 {
                     var matrix = matricesLod[i];
@@ -52,7 +61,8 @@ namespace BillboardGrass
             Flush(ref instancesCount);
         }
 
-        private int GetLodIndex(float cameraDistance, BillboardGrassRenderingSettings.Lod[] lods)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetLodIndex(float cameraDistance, BillboardGrassRenderingSettings.Lod[] lods)
         {
             for (var lodIndex = lods.Length - 1; lodIndex >= 0; lodIndex--)
             {
