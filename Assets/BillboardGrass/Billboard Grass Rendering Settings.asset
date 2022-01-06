@@ -15,55 +15,16 @@ MonoBehaviour:
   _material: {fileID: 2100000, guid: 8625922497983d84e8a4b78d0f5e8e4e, type: 2}
   _mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _size: {x: 15, y: 15}
-  _stepOverCameraDistance:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 6.8220487
-      value: 0.81081355
-      inSlope: 0.015152813
-      outSlope: 0.015152813
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.11566574
-    - serializedVersion: 3
-      time: 27.54047
-      value: 2.4782424
-      inSlope: 0.08048049
-      outSlope: 0.08048049
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
   _maxRandomOffset: 1
   _scaleRange: {x: 0.75, y: 2}
   _verticalOffset: 0.5
   _step: 0.7
-  _skipProbabilityOverCameraDistance:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 7
-      value: 0
-      inSlope: 0.040344488
-      outSlope: 0.040344488
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.08352146
-    - serializedVersion: 3
-      time: 30
-      value: 1
-      inSlope: -0.0030627968
-      outSlope: -0.0030627968
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.14221214
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  _lods:
+  - Distance: 5
+    Density: 1
+  - Distance: 10
+    Density: 0.75
+  - Distance: 20
+    Density: 0.35
+  - Distance: 30
+    Density: 0

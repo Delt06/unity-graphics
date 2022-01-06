@@ -1,17 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Unity.Mathematics;
 using UnityEngine;
-using Random = Unity.Mathematics.Random;
 
 namespace BillboardGrass
 {
-    [ExecuteAlways]
     public class BillboardGrassRenderer : MonoBehaviour
     {
         private const int MaxInstances = 1023;
 
         [SerializeField] private BillboardGrassRenderingSettings _settings;
+        private readonly Plane[] _frustumPlanes = new Plane[6];
 
         private readonly List<BillboardGrassChunk> _grassChunks = new List<BillboardGrassChunk>();
         private readonly Matrix4x4[] _matrices = new Matrix4x4[MaxInstances];
@@ -24,12 +22,10 @@ namespace BillboardGrass
             if (cam == null) return;
 
             var cameraPosition = cam.transform.position;
+            GeometryUtility.CalculateFrustumPlanes(cam, _frustumPlanes);
 
             var instancesCount = 0;
-
-            var step = _settings.Step;
-            const float minStep = 0.1f;
-            step = Mathf.Max(step, minStep);
+            var lods = _settings.Lods;
 
 
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -37,43 +33,35 @@ namespace BillboardGrass
             for (var index = 0; index < grassChunksCount; index++)
             {
                 var grassChunk = _grassChunks[index];
-
                 var chunkOrigin = grassChunk.GetOrigin();
-                var size = _settings.Size;
                 var chunkBounds = GetChunkBounds(chunkOrigin);
+                if (!GeometryUtility.TestPlanesAABB(_frustumPlanes, chunkBounds)) continue;
+
                 var cameraDistance = Vector3.Distance(chunkBounds.ClosestPoint(cameraPosition), cameraPosition);
-                var skipProbability = _settings.SkipProbabilityOverCameraDistance.Evaluate(cameraDistance);
 
-                var scaleRange = _settings.ScaleRange;
-                var verticalOffset = _settings.VerticalOffset;
-                var maxRandomOffset = _settings.MaxRandomOffset;
-
-                for (var x = 0f; x <= size.x; x += step)
+                var lodIndex = GetLodIndex(cameraDistance, lods);
+                var matricesLod = grassChunk.GetMatricesLod(lodIndex);
+                var matricesCount = matricesLod.Count;
+                for (var i = 0; i < matricesCount; i++)
                 {
-                    for (var y = 0f; y <= size.y; y += step)
-                    {
-                        var position = chunkOrigin + new Vector3(x, 0f, y);
-                        var random = CreateRandom(position);
-                        if (random.NextFloat() <= skipProbability) continue;
-
-                        var randomAngle = random.NextFloat(0f, 360f);
-                        var extraRotation = Matrix4x4.Rotate(Quaternion.Euler(0f, randomAngle, 0f));
-                        var extraScale = random.NextFloat(scaleRange.x, scaleRange.y);
-                        var scale = Matrix4x4.Scale(Vector3.one * extraScale);
-                        position += Quaternion.Euler(0f, random.NextFloat(0f, 360f), 0f) *
-                                    Vector3.forward * (random.NextFloat() * maxRandomOffset);
-                        position.y += verticalOffset * extraScale;
-                        var translate = Matrix4x4.Translate(position);
-                        var matrix = translate * extraRotation * scale;
-                        var otherMatrix = translate * Matrix4x4.Rotate(Quaternion.Euler(0f, 90f + randomAngle, 0f)) *
-                                          scale;
-                        Render(matrix, ref instancesCount);
-                        Render(otherMatrix, ref instancesCount);
-                    }
+                    var matrix = matricesLod[i];
+                    Render(matrix, ref instancesCount);
                 }
             }
 
             Flush(ref instancesCount);
+        }
+
+        private int GetLodIndex(float cameraDistance, BillboardGrassRenderingSettings.Lod[] lods)
+        {
+            for (var lodIndex = lods.Length - 1; lodIndex >= 0; lodIndex--)
+            {
+                var lod = lods[lodIndex];
+                if (cameraDistance >= lod.Distance)
+                    return lodIndex;
+            }
+
+            return 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -89,16 +77,11 @@ namespace BillboardGrass
             return bounds;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Random CreateRandom(Vector3 position)
+        public void Add(BillboardGrassChunk grassChunk)
         {
-            var rendererPosition = position;
-            var seed = math.max(1, unchecked((uint) rendererPosition.GetHashCode()));
-            var random = new Random(seed);
-            return random;
+            _grassChunks.Add(grassChunk);
+            grassChunk.Generate(_settings);
         }
-
-        public void Add(BillboardGrassChunk grassChunk) => _grassChunks.Add(grassChunk);
 
         public void Remove(BillboardGrassChunk grassChunk) => _grassChunks.Remove(grassChunk);
 
