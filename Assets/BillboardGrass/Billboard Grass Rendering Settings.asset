@@ -16,7 +16,7 @@ MonoBehaviour:
   _mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _size: {x: 15, y: 15}
   _maxRandomOffset: 2
-  _scaleRange: {x: 1, y: 3}
+  _scaleRange: {x: 2, y: 3}
   _verticalOffset: 0.5
   _step: 1.5
   _lods:
