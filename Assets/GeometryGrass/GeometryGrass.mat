@@ -30,9 +30,9 @@ Material:
     m_Floats:
     - _BendRotationRandom: 0.22
     - _BladeCurve: 2.876
-    - _BladeDiscardMaxDepth: 45
-    - _BladeDiscardMaxProbability: 0.927
-    - _BladeDiscardMinDepth: 15
+    - _BladeDiscardMaxDepth: 32.9
+    - _BladeDiscardMaxProbability: 0.792
+    - _BladeDiscardMinDepth: 9.8
     - _BladeDiscardProbability: 0
     - _BladeDiscardProbabilityOverDepth: 0.035
     - _BladeForward: 0.3
