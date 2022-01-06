@@ -18,13 +18,14 @@ namespace GeometryGrass
             new VertexAttributeDescriptor(UnityEngine.Rendering.VertexAttribute.Normal),
             new VertexAttributeDescriptor(UnityEngine.Rendering.VertexAttribute.Tangent, dimension: 4),
         };
+        [SerializeField]
+        private MeshFilter[] _meshFilters;
         [SerializeField] private float2 _size = new float2(0, 0) * 10f;
         [SerializeField] [Min(0f)] private float _density = 1f;
         private MeshGenerationJob? _activeJob;
         private JobHandle? _jobHandle;
 
         private Mesh _mesh;
-        private MeshFilter _meshFilter;
 
 #if UNITY_EDITOR
         // To avoid flickering in EditMode
@@ -87,6 +88,9 @@ namespace GeometryGrass
 
         private void OnBeforeRender()
         {
+#if UNITY_EDITOR
+            if (!this) return;
+#endif
             if (_jobHandle == null) return;
 
             _jobHandle.Value.Complete();
@@ -94,8 +98,6 @@ namespace GeometryGrass
             if (!_mesh)
                 _mesh = new Mesh();
             _mesh.Clear();
-            if (!_meshFilter)
-                _meshFilter = GetComponent<MeshFilter>();
 
 
             if (_activeJob != null)
@@ -110,7 +112,12 @@ namespace GeometryGrass
                 );
                 _mesh.SetIndices(job.IndexBuffer, MeshTopology.Points, 0, false);
                 _mesh.bounds = new Bounds(Vector3.zero, job.BoundsSize);
-                _meshFilter.sharedMesh = _mesh;
+
+                if (_meshFilters != null)
+                    foreach (var meshFilter in _meshFilters)
+                    {
+                        meshFilter.sharedMesh = _mesh;
+                    }
             }
 
             CleanupJob(false);

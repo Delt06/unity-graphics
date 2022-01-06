@@ -7,6 +7,12 @@ Shader "DELTation/Geometry Grass"
         _BladeWidthRandom("Blade Width Random", Float) = 0.02
         _BladeHeight("Blade Height", Float) = 0.5
         _BladeHeightRandom("Blade Height Random", Float) = 0.3
+        _BladeWidthDepthFactor ("Blade Width Depth Factor", Range(0, 1)) = 0
+        _BladeWidthMinDepth ("Blade Width Min Depth", Range(0, 100)) = 0
+        _BladeWidthMaxDepth ("Blade Width Max Depth", Range(0, 200)) = 0
+        _BladeDiscardMinDepth ("Blade Discard Min Depth", Range(0, 100)) = 0
+        _BladeDiscardMaxDepth ("Blade Discard Max Depth", Range(0, 200)) = 0
+        _BladeDiscardMaxProbability ("Blade Discard Max Probability", Range(0, 1)) = 0
         
         _BladeForward("Blade Forward Amount", Float) = 0.38
         _BladeCurve("Blade Curvature Amount", Range(1, 4)) = 2
@@ -66,6 +72,12 @@ Shader "DELTation/Geometry Grass"
             half _BladeHeightRandom;	
             half _BladeWidth;
             half _BladeWidthRandom;
+            half _BladeWidthDepthFactor;
+            float _BladeWidthMinDepth;
+            float _BladeWidthMaxDepth;
+            float _BladeDiscardMinDepth;
+            float _BladeDiscardMaxDepth;
+            half _BladeDiscardMaxProbability;
 
             half _BladeForward;
             half _BladeCurve;
@@ -126,6 +138,13 @@ Shader "DELTation/Geometry Grass"
             {
                 vertex_output input = IN[0];
                 const float3 vertex_ws = input.vertex_ws.xyz;
+                const float4 vertex_cs = TransformWorldToHClip(vertex_ws);
+                const float raw_depth = LinearEyeDepth(vertex_cs.z / vertex_cs.w, _ZBufferParams);
+                const float depth = clamp(raw_depth, _BladeWidthMinDepth, _BladeWidthMaxDepth) - _BladeWidthMinDepth;
+                const float discard_probability = smoothstep(_BladeDiscardMinDepth, _BladeDiscardMaxDepth, raw_depth) * _BladeDiscardMaxProbability;
+                
+                if (rand(vertex_ws) <= discard_probability) return;
+                
                 const float3 normal_ws = input.normal_ws;
                 const float4 tangent_ws = input.tangent_ws;
                 const float3 binormal_ws = cross(normal_ws, tangent_ws.xyz) * tangent_ws.w;
@@ -143,7 +162,7 @@ Shader "DELTation/Geometry Grass"
                 const float3x3 transformation_matrix = mul(transformation_facing_matrix, bend_rotation_matrix);
 
                 const float height = (rand(vertex_ws.zyx) * 2 - 1) * _BladeHeightRandom + _BladeHeight;
-                const float width = (rand(vertex_ws.xzy) * 2 - 1) * _BladeWidthRandom + _BladeWidth;
+                const float width = ((rand(vertex_ws.xzy) * 2 - 1) * _BladeWidthRandom + _BladeWidth) * (1 + depth * _BladeWidthDepthFactor);
                 const float forward = rand(vertex_ws.yyz) * _BladeForward;
 
                 UNITY_UNROLL
@@ -160,8 +179,6 @@ Shader "DELTation/Geometry Grass"
                 }
 
                 tri_stream.Append(generate_geo_output(vertex_ws, 0, height, forward, float2(0.5, 1), transformation_matrix));
-
-                
             }
 
             half4 frag (geometry_output i, const half facing : VFACE) : SV_Target

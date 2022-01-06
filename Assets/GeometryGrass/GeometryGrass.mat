@@ -30,10 +30,19 @@ Material:
     m_Floats:
     - _BendRotationRandom: 0.22
     - _BladeCurve: 2.876
+    - _BladeDiscardMaxDepth: 45
+    - _BladeDiscardMaxProbability: 0.927
+    - _BladeDiscardMinDepth: 15
+    - _BladeDiscardProbability: 0
+    - _BladeDiscardProbabilityOverDepth: 0.035
     - _BladeForward: 0.3
     - _BladeHeight: 1.9
     - _BladeHeightRandom: 0.73
     - _BladeWidth: 0.24
+    - _BladeWidthDepthFactor: 0.105
+    - _BladeWidthMaxDepth: 57.5
+    - _BladeWidthMinDepth: 12.5
+    - _BladeWidthMinDepthDepth: 10
     - _BladeWidthRandom: 0.02
     - _WindStrength: 1
     m_Colors:
