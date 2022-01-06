@@ -194,6 +194,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6791805608647885633, guid: ead650647a471f646b368193021538c7, type: 3}
+      propertyPath: _renderer
+      value: 
+      objectReference: {fileID: 1876540533}
     - target: {fileID: 6791805608647885638, guid: ead650647a471f646b368193021538c7, type: 3}
       propertyPath: m_Name
       value: Grass Chunk
@@ -577,6 +581,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6791805608647885633, guid: ead650647a471f646b368193021538c7, type: 3}
+      propertyPath: _renderer
+      value: 
+      objectReference: {fileID: 1876540533}
     - target: {fileID: 6791805608647885638, guid: ead650647a471f646b368193021538c7, type: 3}
       propertyPath: m_Name
       value: Grass Chunk

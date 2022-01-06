@@ -16,15 +16,15 @@ MonoBehaviour:
   _mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
   _size: {x: 15, y: 15}
   _maxRandomOffset: 1
-  _scaleRange: {x: 0.75, y: 2}
+  _scaleRange: {x: 0.5, y: 3}
   _verticalOffset: 0.5
-  _step: 0.7
+  _step: 1
   _lods:
   - Distance: 5
     Density: 1
-  - Distance: 10
-    Density: 0.75
-  - Distance: 20
+  - Distance: 15
+    Density: 0.78
+  - Distance: 25
     Density: 0.35
   - Distance: 30
     Density: 0
