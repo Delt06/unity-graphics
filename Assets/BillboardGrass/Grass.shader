@@ -78,7 +78,7 @@
 			    const Light light = GetMainLight();
 			    const half3 normal_ws = sign(facing) * i.normal_ws;
 			    const half n_dol_l = max(_MinDiffuse, saturate(dot(normal_ws, light.direction)));
-                const half3 diffuse = n_dol_l * albedo * light.color;
+                const half3 diffuse = n_dol_l * albedo.rgb * light.color;
 			    
 			    half3 col = diffuse;
 			    col = MixFog(col, i.uv_fog.z);
