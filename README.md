@@ -44,8 +44,17 @@ Runtime drawing on the GPU side with configurable brush (color, size, hardness).
 
 ## Layered Grass
 
-![Blob Shadows](Documentation/layered_grass.jpg)
+![Layered Grass](Documentation/layered_grass.jpg)
 
 Grass shader made with the technique that is typically used for fur ([Reference](https://xbdev.net/directx3dx/specialX/Fur/index.php)).
 
 > Warning: the shader has poor performance on both mobile and desktop platforms. It is only a technical demo, which might not be suitable for production even if further optimized.
+
+## Billboard Grass
+
+![Billboard Grass](Documentation/billboard_grass.jpg)
+
+Billboard grass shader:
+- Automatic random spread
+- Per-chunk frustum culling (in the screenshot above, chunk size is 15x15)
+- LOD system: the further the grass chunk from the camera, the sparser it is
