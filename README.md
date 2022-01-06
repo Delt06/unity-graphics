@@ -58,3 +58,12 @@ Billboard grass shader:
 - Automatic random spread
 - Per-chunk frustum culling (in the screenshot above, chunk size is 15x15)
 - LOD system: the further the grass chunk from the camera, the sparser it is
+
+## Geometry Grass
+
+![Geometry Grass](Documentation/geometry_grass.jpg)
+
+Grass implemented with geometry shader:
+- Grass placement mesh is generated via Job System
+- Automatic LOD system implemented in the geometry shader (controlled via material properties) 
+- Based on [this tutorial](https://roystan.net/articles/grass-shader.html)
