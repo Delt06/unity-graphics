@@ -30,7 +30,7 @@ Material:
     m_Floats:
     - _BendRotationRandom: 0.22
     - _BladeCurve: 2.876
-    - _BladeForward: 1.13
+    - _BladeForward: 0.3
     - _BladeHeight: 1.9
     - _BladeHeightRandom: 0.73
     - _BladeWidth: 0.24

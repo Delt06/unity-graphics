@@ -122,7 +122,7 @@ Shader "DELTation/Geometry Grass"
             }
 
             [maxvertexcount(BLADE_SEGMENTS * 2 + 1)]
-            void geo(triangle vertex_output IN[3], inout TriangleStream<geometry_output> tri_stream)
+            void geo(point vertex_output IN[1], inout TriangleStream<geometry_output> tri_stream)
             {
                 vertex_output input = IN[0];
                 const float3 vertex_ws = input.vertex_ws.xyz;
