@@ -42,3 +42,28 @@ MonoBehaviour:
   _maxRandomOffset: 1
   _scaleRange: {x: 0.75, y: 2}
   _verticalOffset: 0.5
+  _step: 0.7
+  _skipProbabilityOverCameraDistance:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 7
+      value: 0
+      inSlope: 0.040344488
+      outSlope: 0.040344488
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.08352146
+    - serializedVersion: 3
+      time: 30
+      value: 1
+      inSlope: -0.0030627968
+      outSlope: -0.0030627968
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.14221214
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
