@@ -67,3 +67,9 @@ Grass implemented with geometry shader:
 - Grass placement mesh is generated via Job System
 - Automatic LOD system implemented in the geometry shader (controlled via material properties) 
 - Based on [this tutorial](https://roystan.net/articles/grass-shader.html)
+
+## Matcap
+
+![Matcap](Documentation/matcap.jpg)
+
+Basic Matcap shader. Matcap textures are taken from [this repo](https://github.com/nidorx/matcaps).
