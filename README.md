@@ -73,3 +73,13 @@ Grass implemented with geometry shader:
 ![Matcap](Documentation/matcap.jpg)
 
 Basic Matcap shader. Matcap textures are taken from [this repo](https://github.com/nidorx/matcaps).
+
+## Toon Terrain
+
+![Toon Terrain](Documentation/toon_terrain.jpg)
+
+Lightweight toon terrain shader.
+
+- Configurable ramp (specified as a texture)
+- Shadow casting and receiving
+- 4 layers (splats) max
