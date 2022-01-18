@@ -55,10 +55,9 @@
 			    
 				o.vertex = TransformObjectToHClip(v.vertex.xyz);
 				o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
-			    
-			    const half4 normal_cs = half4(TransformWorldToHClipDir(TransformObjectToWorldDir(v.normal)), 0);
-			    half2 matcap_uv = ComputeScreenPos(normal_cs).xy;
-			    matcap_uv = (matcap_uv + 1) * 0.5; // remap from [-1; 1] to [0; 1]
+
+			    half2 matcap_uv = TransformWorldToViewDir(TransformObjectToWorldDir(v.normal)).xy;
+			    matcap_uv = matcap_uv * 0.5 + 0.5; // remap from [-1; 1] to [0; 1]
 			    o.matcap_uv = matcap_uv;
 			    
 				return o;
