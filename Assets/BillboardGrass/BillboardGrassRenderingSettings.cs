@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace BillboardGrass
 {
@@ -14,6 +15,7 @@ namespace BillboardGrass
         [SerializeField] [Min(0f)] private float _verticalOffset = 0.5f;
         [SerializeField] [Min(0f)] private float _step = 0.5f;
         [SerializeField] private Lod[] _lods;
+        [SerializeField] private ShadowCastingMode _shadowCastingMode;
 
         public Material Material => _material;
 
@@ -31,6 +33,8 @@ namespace BillboardGrass
         public float Step => _step;
 
         public Lod[] Lods => _lods;
+
+        public ShadowCastingMode ShadowCastingMode => _shadowCastingMode;
 
         [Serializable]
         public struct Lod

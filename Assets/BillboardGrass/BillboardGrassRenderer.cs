@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace BillboardGrass
 {
@@ -14,6 +15,7 @@ namespace BillboardGrass
         private readonly List<BillboardGrassChunk> _grassChunks = new List<BillboardGrassChunk>();
         private readonly Matrix4x4[] _matrices = new Matrix4x4[MaxInstances];
         private Camera _camera;
+        private ShadowCastingMode _shadowCastingMode;
 
         private void Awake()
         {
@@ -29,6 +31,8 @@ namespace BillboardGrass
                 return;
             }
 #endif
+
+            _shadowCastingMode = _settings.ShadowCastingMode;
 
             var cameraPosition = _camera.transform.position;
             GeometryUtility.CalculateFrustumPlanes(_camera, _frustumPlanes);
@@ -110,7 +114,7 @@ namespace BillboardGrass
         private void Flush(ref int instancesCount)
         {
             if (instancesCount == 0) return;
-            Graphics.DrawMeshInstanced(_settings.Mesh, 0, _settings.Material, _matrices, instancesCount);
+            Graphics.DrawMeshInstanced(_settings.Mesh, 0, _settings.Material, _matrices, instancesCount, null, _shadowCastingMode);
             instancesCount = 0;
         }
     }
