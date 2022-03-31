@@ -499,6 +499,7 @@ GameObject:
   - component: {fileID: 966723509}
   - component: {fileID: 966723508}
   - component: {fileID: 966723507}
+  - component: {fileID: 966723511}
   m_Layer: 0
   m_Name: Sphere
   m_TagString: Untagged
@@ -582,6 +583,22 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!111 &966723511
+Animation:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 966723506}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Animation: {fileID: 7400000, guid: 0d7918614ec06064399068a60cd21ad4, type: 2}
+  m_Animations:
+  - {fileID: 7400000, guid: 0d7918614ec06064399068a60cd21ad4, type: 2}
+  m_WrapMode: 0
+  m_PlayAutomatically: 1
+  m_AnimatePhysics: 0
+  m_CullingType: 0
 --- !u!1001 &1049127698
 PrefabInstance:
   m_ObjectHideFlags: 0
