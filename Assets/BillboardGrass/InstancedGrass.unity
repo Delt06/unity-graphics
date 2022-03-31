@@ -1283,7 +1283,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _position: {fileID: 966723510}
-  _positionSize: 0.05
+  _positionSize: 0.035
   _positionTilingOffset:
     x: 0.01
     y: 0.01
