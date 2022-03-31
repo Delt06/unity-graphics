@@ -98,6 +98,7 @@ Material:
     - _GlossyReflections: 0
     - _Metallic: 0
     - _MinDiffuse: 0.708
+    - _MinMask: 0.2
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -122,6 +123,7 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _FixedNormal: {r: 0, g: 1, b: 0, a: 0}
+    - _PivotOS: {r: 0, g: -0.5, b: 0, a: 0}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _TopTint: {r: 1, g: 1, b: 1, a: 1}
     - _WindAxis: {r: 1, g: 0, b: 1, a: 0}

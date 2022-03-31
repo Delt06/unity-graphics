@@ -1,5 +1,9 @@
 ﻿#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
 #include "./GrassWindInput.hlsl"
+TEXTURE2D(_BillboardGrassMask);
+SAMPLER(sampler_BillboardGrassMask);
+float4 _BillboardGrassMask_ST;
 
 void Unity_RotateAboutAxis_Radians_float(float3 In, float3 Axis, float Rotation, out float3 Out)
 {
@@ -16,9 +20,9 @@ void Unity_RotateAboutAxis_Radians_float(float3 In, float3 Axis, float Rotation,
     Out = mul(rot_mat,  In);
 }
 
-float3 apply_wind(float3 position_ws, float3 position_os)
+float3 apply_wind(float3 position_ws, float3 position_os, float3 pivot_os)
 {
-    const float3 pivot = TransformObjectToWorld(0);
+    const float3 pivot = TransformObjectToWorld(pivot_os);
     float3 offset_from_pivot = position_ws - pivot;
 
     const float2 wind_uv = (position_ws.xz + _Time.y * _WindScrollVelocity) * _WindTexture_ST.xy + _WindTexture_ST.zw;

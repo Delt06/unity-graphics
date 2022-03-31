@@ -30,4 +30,4 @@ MonoBehaviour:
     Density: 0.2
   - Distance: 30
     Density: 0
-  _shadowCastingMode: 2
+  _shadowCastingMode: 0

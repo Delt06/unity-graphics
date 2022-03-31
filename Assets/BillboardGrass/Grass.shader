@@ -13,6 +13,11 @@
 	    _WindScrollVelocity("Wind Scroll Velocity", Vector) = (1, 1, 0, 0)
 	    _WindTexture("Wind Texture", 2D) = "normal" {} 
 	    _FixedNormal ("Fixed Normal", Vector) = (0, 1, 0, 0)
+	    _MinMask ("Min Mask", Float) = 0.5
+	    _PivotOS("Pivot OS", Vector) = (0, 0, 0, 0)
+	    
+	    [Toggle(_RECEIVE_SHADOWS)]
+	    _ReceiveShadows("Receive Shadows", Float) = 1
 	}
 	SubShader
 	{
@@ -22,6 +27,8 @@
 	    HLSLINCLUDE
 	    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+	    float3 _PivotOS;
 	    ENDHLSL
 
 		Pass
@@ -35,6 +42,8 @@
 			#pragma instancing_options assumeuniformscaling
 			#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+
+			#pragma shader_feature_local_fragment _RECEIVE_SHADOWS
 
 			struct appdata
 			{
@@ -59,6 +68,7 @@
             half4 _TopTint;
             half _TopThreshold;
             half _MinDiffuse;
+			half _MinMask;
 			
 			float3 _FixedNormal;
 
@@ -74,8 +84,14 @@
 			    UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_TRANSFER_INSTANCE_ID(v, o);
 
-                const float3 position_ws = TransformObjectToWorld(v.vertex);
-                o.position_ws = apply_wind(position_ws, v.vertex);
+
+			    float3 position_os = v.vertex;
+			    const float2 initial_position_ws = TransformObjectToWorld(position_os).xz;
+			    float3 pivot_offset_os = position_os - _PivotOS;
+			    pivot_offset_os.y *= lerp(_MinMask, 1, 1 - SAMPLE_TEXTURE2D_LOD(_BillboardGrassMask, sampler_BillboardGrassMask, initial_position_ws * _BillboardGrassMask_ST.xy + _BillboardGrassMask_ST.zw, 0).r);
+			    position_os = _PivotOS + pivot_offset_os;
+                const float3 position_ws = TransformObjectToWorld(position_os);
+                o.position_ws = apply_wind(position_ws, position_os, _PivotOS);
 
                 o.vertex = TransformWorldToHClip(o.position_ws);
 			    o.normal_ws = TransformObjectToWorldNormal(_FixedNormal);
@@ -91,9 +107,16 @@
 				    lerp(_BottomTint, _TopTint, smoothstep(0, _TopThreshold, uv.y));
 			    
 			    clip(albedo.a - _AlphaClipThreshold);
+			    
+			    Light light;
+			    #ifdef _RECEIVE_SHADOWS
                 const float4 shadow_coords = TransformWorldToShadowCoord(i.position_ws);
-			    Light light = GetMainLight(shadow_coords);
+			    light = GetMainLight(shadow_coords);
 			    light.shadowAttenuation = lerp(light.shadowAttenuation, 1, GetShadowFade(i.position_ws));
+			    #else
+			    light = GetMainLight();
+			    #endif
+                
 			    const half3 normal_ws = i.normal_ws;
 			    const half n_dol_l = max(_MinDiffuse, dot(normal_ws, light.direction));
                 const half3 diffuse = n_dol_l * albedo.rgb * light.color * light.shadowAttenuation;
@@ -146,7 +169,7 @@
             {
                 const float3 positionOS = input.positionOS.xyz;
                 float3 positionWS = TransformObjectToWorld(positionOS);
-                positionWS = apply_wind(positionWS, positionOS);
+                positionWS = apply_wind(positionWS, positionOS, _PivotOS);
                 float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 
                 float4 positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));

@@ -1108,6 +1108,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1876540532}
   - component: {fileID: 1876540533}
+  - component: {fileID: 1876540534}
   m_Layer: 0
   m_Name: Root Renderer
   m_TagString: Untagged
@@ -1151,6 +1152,32 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _settings: {fileID: 11400000, guid: 48fafede796c64743a0de35808eb85e9, type: 2}
+--- !u!114 &1876540534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1876540531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5f1d8237f2a41d3a6211fb3b3589ba1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _position: {fileID: 966723510}
+  _positionSize: 0.05
+  _positionTilingOffset:
+    x: 0.01
+    y: 0.01
+    z: -0.005
+    w: -0.005
+  _resolution:
+    x: 1024
+    y: 1024
+  _renderTexture1: {fileID: 0}
+  _renderTexture2: {fileID: 0}
+  _stampMaterial: {fileID: 2100000, guid: 5972072900e8c1746b013c89fef655c2, type: 2}
+  _fadeMaterial: {fileID: 2100000, guid: 4db49a030eccb51488f6d93c2deda5d3, type: 2}
 --- !u!4 &1897692828 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6791805608647885632, guid: ead650647a471f646b368193021538c7, type: 3}
