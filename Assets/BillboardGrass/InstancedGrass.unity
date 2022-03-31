@@ -1189,8 +1189,8 @@ MonoBehaviour:
     z: 0.2
     w: 0.2
   _resolution:
-    x: 1024
-    y: 1024
+    x: 128
+    y: 128
   _renderTexture1: {fileID: 0}
   _renderTexture2: {fileID: 0}
   _stampMaterial: {fileID: 2100000, guid: 5972072900e8c1746b013c89fef655c2, type: 2}
