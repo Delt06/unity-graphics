@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: Billboard Grass
   m_Shader: {fileID: 4800000, guid: 1d3c878d58ec482d8e2df7d9eead5811, type: 3}
-  m_ShaderKeywords: _ALPHATEST_ON
+  m_ShaderKeywords: _ALPHATEST_ON _RECEIVE_SHADOWS
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 1
@@ -98,7 +98,7 @@ Material:
     - _GlossyReflections: 0
     - _Metallic: 0
     - _MinDiffuse: 0.708
-    - _MinMask: 0.2
+    - _MinMask: 0.5
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0

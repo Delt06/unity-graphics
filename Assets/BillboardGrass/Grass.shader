@@ -88,7 +88,7 @@
 			    float3 position_os = v.vertex;
 			    const float2 initial_position_ws = TransformObjectToWorld(position_os).xz;
 			    float3 pivot_offset_os = position_os - _PivotOS;
-			    pivot_offset_os.y *= lerp(_MinMask, 1, 1 - SAMPLE_TEXTURE2D_LOD(_BillboardGrassMask, sampler_BillboardGrassMask, initial_position_ws * _BillboardGrassMask_ST.xy + _BillboardGrassMask_ST.zw, 0).r);
+			    pivot_offset_os.y *= max(_MinMask, 1 - SAMPLE_TEXTURE2D_LOD(_BillboardGrassMask, sampler_BillboardGrassMask, initial_position_ws * _BillboardGrassMask_ST.xy + _BillboardGrassMask_ST.zw, 0).r);
 			    position_os = _PivotOS + pivot_offset_os;
                 const float3 position_ws = TransformObjectToWorld(position_os);
                 o.position_ws = apply_wind(position_ws, position_os, _PivotOS);
