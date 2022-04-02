@@ -52,12 +52,15 @@ Grass shader made with the technique that is typically used for fur ([Reference]
 
 ## Billboard Grass
 
-![Billboard Grass](Documentation/billboard_grass.jpg)
+![Billboard Grass](Documentation/billboard_grass.gif)
 
 Billboard grass shader:
 - Automatic random spread
 - Per-chunk frustum culling (in the screenshot above, chunk size is 15x15)
 - LOD system: the further the grass chunk from the camera, the sparser it is
+- Interactive: the grass reacts to contacts with other objects
+- Receives and optionally casts shadows
+- Wind animation
 
 ## Geometry Grass
 
