@@ -97,3 +97,9 @@ Lightweight toon terrain shader.
 - Configurable ramp (specified as a texture)
 - Shadow casting and receiving
 - 4 layers (splats) max
+
+## Parallax Ice
+
+![Parallax Ice](Documentation/parallax_ice.gif)
+
+Ice shader imitating depth.
