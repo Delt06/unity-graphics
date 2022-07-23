@@ -28,14 +28,14 @@ Material:
         m_Scale: {x: 0.25, y: 0.25}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _BendRotationRandom: 0.22
-    - _BladeCurve: 2.876
+    - _BendRotationRandom: 0.304
+    - _BladeCurve: 2.54
     - _BladeDiscardMaxDepth: 32.9
     - _BladeDiscardMaxProbability: 0.792
     - _BladeDiscardMinDepth: 9.8
     - _BladeDiscardProbability: 0
     - _BladeDiscardProbabilityOverDepth: 0.035
-    - _BladeForward: 0.3
+    - _BladeForward: -1.3
     - _BladeHeight: 1.9
     - _BladeHeightRandom: 0.73
     - _BladeWidth: 0.24

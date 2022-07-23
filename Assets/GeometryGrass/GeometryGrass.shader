@@ -33,6 +33,10 @@ Shader "DELTation/Geometry Grass"
             #pragma geometry geo
             #pragma fragment frag
 
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_fragment _ _SHADOWS_SOFT
+
             #define BLADE_SEGMENTS 3
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -105,6 +109,7 @@ Shader "DELTation/Geometry Grass"
             {
                 float2 uv : TEXCOORD0;
                 float4 position_cs : SV_POSITION;
+                float3 position_ws : TEXCOORD1;
             };
 
             vertex_output vert (const vertex_input v)
@@ -123,6 +128,7 @@ Shader "DELTation/Geometry Grass"
                 geometry_output o;
                 o.position_cs = TransformWorldToHClip(position_ws);
                 o.uv = uv;
+                o.position_ws = position_ws;
                 return o;
             }
 
@@ -184,7 +190,10 @@ Shader "DELTation/Geometry Grass"
             half4 frag (geometry_output i, const half facing : VFACE) : SV_Target
             {
                 half3 albedo = lerp(_ColorBottom, _ColorTop, i.uv.y);
-                return half4(albedo, 1);
+                const float4 shadow_coord = TransformWorldToShadowCoord(i.position_ws);
+                Light light = GetMainLight(shadow_coord);
+                light.shadowAttenuation = lerp(light.shadowAttenuation, 1, GetShadowFade(i.position_ws));
+                return half4(albedo * light.shadowAttenuation, 1);
             }
             ENDHLSL
         }
